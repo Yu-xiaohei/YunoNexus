@@ -2,7 +2,7 @@
 
 > 于的小窝 - 专属于你的轻量级内网穿透小工具
 > 
-> 版本: 0.1.0 | by Yu_xiaohei
+> 版本: 0.2.0 | by Yu_xiaohei
 
 ## 功能特性
 
@@ -44,22 +44,13 @@ docker-compose up -d
 
 浏览器访问 `https://dev.yxhmc.cn/nexus`，使用管理员账号登录。
 
-## 版本历史
-
-### 0.1.0 (2026-07-03)
-- 初始版本
-- 项目结构搭建
-- 服务端基础框架
-- 数据库设计
-
 ## 文档
 
-- [架构设计文档](docs/architecture.md)
-- [完整架构文档](docs/architecture-full.md)
-- [开发任务分解](docs/development-tasks.md)
-- [API文档](docs/api/)
-- [用户手册](docs/user-guide/)
-- [开发指南](docs/dev-guide/)
+- [Wiki首页](https://yu-xiaohei.github.io/YunoNexus/)
+- [架构设计](https://yu-xiaohei.github.io/YunoNexus/Architecture)
+- [API文档](https://yu-xiaohei.github.io/YunoNexus/API-Reference)
+- [错误码](https://yu-xiaohei.github.io/YunoNexus/Error-Codes)
+- [更新日志](CHANGELOG.md)
 
 ## 安全说明
 
