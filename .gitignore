@@ -84,3 +84,6 @@ test/
 .claude/
 .agents/
 .codex/
+
+# 内部文档（AI助手专用，不发布）
+.internal/
