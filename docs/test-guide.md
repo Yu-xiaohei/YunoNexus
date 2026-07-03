@@ -132,13 +132,19 @@ Invoke-RestMethod -Uri "http://localhost:8080/api/v1/devices" -Headers @{"Author
 - `data.items` 包含设备数组
 - `data.total` 显示设备总数
 
+**记录返回的设备ID，后续测试会用到：**
+```powershell
+$deviceId = (Invoke-RestMethod -Uri "http://localhost:8080/api/v1/devices" -Headers @{"Authorization"="Bearer $token"}).data.items[0].id
+Write-Host "设备ID: $deviceId"
+```
+
 ---
 
 ### 7. 设备详情
 
-**命令（替换DEVICE_ID）：**
+**命令（用上面获取的真实ID）：**
 ```powershell
-Invoke-RestMethod -Uri "http://localhost:8080/api/v1/devices/DEVICE_ID" -Headers @{"Authorization"="Bearer $token"}
+Invoke-RestMethod -Uri "http://localhost:8080/api/v1/devices/$deviceId" -Headers @{"Authorization"="Bearer $token"}
 ```
 
 **预期结果：**
@@ -181,6 +187,12 @@ Invoke-RestMethod -Uri "http://localhost:8080/api/v1/tunnels" -Method POST -Cont
 }
 ```
 
+**记录返回的隧道ID：**
+```powershell
+$tunnelId = (Invoke-RestMethod -Uri "http://localhost:8080/api/v1/tunnels" -Method POST -ContentType "application/json" -Headers @{"Authorization"="Bearer $token"} -Body '{"name":"测试隧道","protocol":"tcp","local_host":"127.0.0.1","local_port":8080}').data.id
+Write-Host "隧道ID: $tunnelId"
+```
+
 ---
 
 ### 10. 隧道列表
@@ -198,9 +210,9 @@ Invoke-RestMethod -Uri "http://localhost:8080/api/v1/tunnels" -Headers @{"Author
 
 ### 11. 隧道详情
 
-**命令（替换TUNNEL_ID）：**
+**命令（用上面获取的真实ID）：**
 ```powershell
-Invoke-RestMethod -Uri "http://localhost:8080/api/v1/tunnels/TUNNEL_ID" -Headers @{"Authorization"="Bearer $token"}
+Invoke-RestMethod -Uri "http://localhost:8080/api/v1/tunnels/$tunnelId" -Headers @{"Authorization"="Bearer $token"}
 ```
 
 **预期结果：**
@@ -211,9 +223,9 @@ Invoke-RestMethod -Uri "http://localhost:8080/api/v1/tunnels/TUNNEL_ID" -Headers
 
 ### 12. 启动隧道
 
-**命令（替换TUNNEL_ID）：**
+**命令：**
 ```powershell
-Invoke-RestMethod -Uri "http://localhost:8080/api/v1/tunnels/TUNNEL_ID/start" -Method POST -Headers @{"Authorization"="Bearer $token"}
+Invoke-RestMethod -Uri "http://localhost:8080/api/v1/tunnels/$tunnelId/start" -Method POST -Headers @{"Authorization"="Bearer $token"}
 ```
 
 **预期结果：**
@@ -225,9 +237,9 @@ Invoke-RestMethod -Uri "http://localhost:8080/api/v1/tunnels/TUNNEL_ID/start" -M
 
 ### 13. 隧道统计
 
-**命令（替换TUNNEL_ID）：**
+**命令：**
 ```powershell
-Invoke-RestMethod -Uri "http://localhost:8080/api/v1/tunnels/TUNNEL_ID/stats" -Headers @{"Authorization"="Bearer $token"}
+Invoke-RestMethod -Uri "http://localhost:8080/api/v1/tunnels/$tunnelId/stats" -Headers @{"Authorization"="Bearer $token"}
 ```
 
 **预期结果：**
@@ -248,9 +260,9 @@ Invoke-RestMethod -Uri "http://localhost:8080/api/v1/tunnels/TUNNEL_ID/stats" -H
 
 ### 14. 停止隧道
 
-**命令（替换TUNNEL_ID）：**
+**命令：**
 ```powershell
-Invoke-RestMethod -Uri "http://localhost:8080/api/v1/tunnels/TUNNEL_ID/stop" -Method POST -Headers @{"Authorization"="Bearer $token"}
+Invoke-RestMethod -Uri "http://localhost:8080/api/v1/tunnels/$tunnelId/stop" -Method POST -Headers @{"Authorization"="Bearer $token"}
 ```
 
 **预期结果：**
@@ -262,9 +274,9 @@ Invoke-RestMethod -Uri "http://localhost:8080/api/v1/tunnels/TUNNEL_ID/stop" -Me
 
 ### 15. 删除隧道
 
-**命令（替换TUNNEL_ID）：**
+**命令：**
 ```powershell
-Invoke-RestMethod -Uri "http://localhost:8080/api/v1/tunnels/TUNNEL_ID" -Method DELETE -Headers @{"Authorization"="Bearer $token"}
+Invoke-RestMethod -Uri "http://localhost:8080/api/v1/tunnels/$tunnelId" -Method DELETE -Headers @{"Authorization"="Bearer $token"}
 ```
 
 **预期结果：**
