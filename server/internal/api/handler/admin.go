@@ -66,9 +66,19 @@ func (h *AdminHandler) UpdateUser(c echo.Context) error {
 	}
 
 	if req.Role != "" {
+		// 角色白名单验证
+		validRoles := map[string]bool{"user": true, "admin": true}
+		if !validRoles[req.Role] {
+			return response.ErrorWithCode(c, http.StatusBadRequest, 8001, "无效的角色值，只允许 user 或 admin")
+		}
 		user.Role = req.Role
 	}
 	if req.Status != "" {
+		// 状态白名单验证
+		validStatuses := map[string]bool{"active": true, "suspended": true, "banned": true}
+		if !validStatuses[req.Status] {
+			return response.ErrorWithCode(c, http.StatusBadRequest, 8001, "无效的状态值")
+		}
 		user.Status = req.Status
 	}
 	if req.MaxTunnels != nil {

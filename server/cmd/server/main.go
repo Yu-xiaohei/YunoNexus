@@ -33,7 +33,11 @@ func main() {
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-	e.Use(middleware.CORS())
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"https://dev.yxhmc.cn", "https://yxhmc.cn", "http://localhost:3000", "http://localhost:5173"},
+		AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions},
+		AllowHeaders: []string{"Authorization", "Content-Type"},
+	}))
 
 	// 健康检查
 	e.GET("/health", func(c echo.Context) error {
@@ -88,7 +92,6 @@ func main() {
 	trafficHandler := handler.NewTrafficHandler(db)
 	protected.GET("/traffic/overview", trafficHandler.Overview)
 	protected.GET("/traffic/tunnel/:id", trafficHandler.ByTunnel)
-	protected.GET("/traffic/user/:id", trafficHandler.ByUser)
 
 	// 配置导入导出
 	configHandler := handler.NewConfigHandler(db)
@@ -102,6 +105,7 @@ func main() {
 	admin.GET("/users", adminHandler.ListUsers)
 	admin.PUT("/users/:id", adminHandler.UpdateUser)
 	admin.GET("/system/stats", adminHandler.SystemStats)
+	admin.GET("/traffic/user/:id", trafficHandler.ByUser) // 移到管理员组
 	admin.GET("/audit-logs", adminHandler.AuditLogs)
 	admin.GET("/system/config", adminHandler.GetSystemConfig)
 	admin.PUT("/system/config", adminHandler.UpdateSystemConfig)

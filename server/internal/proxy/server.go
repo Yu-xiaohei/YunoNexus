@@ -1,12 +1,16 @@
 package proxy
 
 import (
+	"crypto/rand"
+	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/yunonexus/server/internal/auth"
 	"github.com/yunonexus/server/internal/config"
 	"github.com/yunonexus/server/internal/database"
 )
@@ -52,7 +56,24 @@ func NewServer(cfg *config.Config, db *database.DB) *Server {
 		upgrader: websocket.Upgrader{
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,
-			CheckOrigin:     func(r *http.Request) bool { return true },
+			CheckOrigin: func(r *http.Request) bool {
+				// 验证来源域名
+				origin := r.Header.Get("Origin")
+				// 允许的来源列表（可以从配置中读取）
+				allowedOrigins := []string{
+					"https://dev.yxhmc.cn",
+					"https://yxhmc.cn",
+					"http://localhost:3000",
+					"http://localhost:5173",
+				}
+				for _, allowed := range allowedOrigins {
+					if origin == allowed {
+						return true
+					}
+				}
+				// 无来源的请求（如WebSocket客户端）也允许
+				return origin == ""
+			},
 		},
 	}
 }
@@ -190,22 +211,43 @@ func (c *Client) handleMessage(server *Server, msg *Message) {
 
 // handleAuth 处理认证
 func (c *Client) handleAuth(server *Server, msg *Message) {
-	// 简化认证，实际应验证JWT token
-	log.Printf("收到认证消息，客户端认证成功")
+	// 解析认证载荷
+	var authPayload struct {
+		Token    string `json:"token"`
+		DeviceID string `json:"device_id"`
+	}
+	if err := json.Unmarshal(msg.Payload, &authPayload); err != nil {
+		log.Printf("解析认证载荷失败: %v", err)
+		c.sendAuthError(msg.MsgID, "认证数据格式错误")
+		return
+	}
 
-	// 生成测试密钥
+	// 验证JWT token
+	claims, err := auth.ValidateToken(authPayload.Token, server.cfg.JWT.Secret)
+	if err != nil {
+		log.Printf("JWT验证失败: %v", err)
+		c.sendAuthError(msg.MsgID, "认证令牌无效或已过期")
+		return
+	}
+
+	// 生成安全的随机加密密钥
 	key := make([]byte, 32)
-	for i := range key {
-		key[i] = byte(i)
+	if _, err := rand.Read(key); err != nil {
+		log.Printf("生成加密密钥失败: %v", err)
+		c.sendAuthError(msg.MsgID, "系统错误")
+		return
 	}
 
 	enc, err := NewEncryptor(key)
 	if err != nil {
 		log.Printf("创建加密器失败: %v", err)
+		c.sendAuthError(msg.MsgID, "系统错误")
 		return
 	}
 	c.Encryptor = enc
-	c.ID = "client-" + time.Now().Format("150405")
+	c.UserID = claims.UserID
+	c.DeviceID = authPayload.DeviceID
+	c.ID = "client-" + fmt.Sprintf("%d", time.Now().UnixNano())
 
 	server.clients.Store(c.ID, c)
 
@@ -217,7 +259,18 @@ func (c *Client) handleAuth(server *Server, msg *Message) {
 	}
 
 	c.Send <- response.Encode()
-	log.Printf("客户端 %s 已连接", c.ID)
+	log.Printf("客户端 %s (用户 %s) 已连接", c.ID, c.UserID)
+}
+
+// sendAuthError 发送认证错误
+func (c *Client) sendAuthError(msgID uint32, message string) {
+	response := &Message{
+		Type:    MsgTypeAuthResponse,
+		Flag:    MsgFlagNone,
+		MsgID:   msgID,
+		Payload: []byte(`{"success":false,"message":"` + message + `"}`),
+	}
+	c.Send <- response.Encode()
 }
 
 // handleHeartbeat 处理心跳

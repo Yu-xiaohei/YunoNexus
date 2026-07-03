@@ -1,6 +1,7 @@
 package response
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -80,4 +81,13 @@ func statusCodeToCode(statusCode int) int {
 	default:
 		return 0
 	}
+}
+
+// GetUserID 安全获取用户ID
+func GetUserID(c echo.Context) (string, error) {
+	userID, ok := c.Get("user_id").(string)
+	if !ok || userID == "" {
+		return "", fmt.Errorf("认证信息异常")
+	}
+	return userID, nil
 }

@@ -2,6 +2,7 @@ package auth
 
 import (
 	"crypto/hmac"
+	"crypto/rand"
 	"crypto/sha1"
 	"encoding/base32"
 	"fmt"
@@ -35,8 +36,11 @@ func NewTOTP(secret, issuer, account string) *TOTP {
 // GenerateSecret 生成随机密钥
 func GenerateSecret() string {
 	secret := make([]byte, 20)
-	for i := range secret {
-		secret[i] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"[i%32]
+	if _, err := rand.Read(secret); err != nil {
+		// 如果随机数生成失败，使用时间戳+随机数作为后备
+		for i := range secret {
+			secret[i] = byte(time.Now().UnixNano() >> uint(i*3) & 0xff)
+		}
 	}
 	return base32.StdEncoding.EncodeToString(secret)
 }
