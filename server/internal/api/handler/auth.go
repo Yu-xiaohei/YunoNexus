@@ -9,7 +9,7 @@ import (
 	"github.com/yunonexus/server/internal/config"
 	"github.com/yunonexus/server/internal/database"
 	"github.com/yunonexus/server/internal/models"
-	"github.com/yunonexus/server/internal/response"
+	"github.com/yunonexus/server/internal/api/response"
 )
 
 // AuthHandler 认证处理器
@@ -208,7 +208,7 @@ func (h *AuthHandler) RefreshToken(c echo.Context) error {
 	}
 
 	// 验证刷新令牌
-	claims, err := auth.ValidateToken(req.RefreshToken, h.Config.JWT.Secret)
+	_, err := auth.ValidateToken(req.RefreshToken, h.Config.JWT.Secret)
 	if err != nil {
 		return response.Error(c, http.StatusUnauthorized, "无效的刷新令牌")
 	}

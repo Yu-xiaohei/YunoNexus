@@ -19,7 +19,7 @@ func HashPassword(password string) (string, string, error) {
 	}
 
 	// Argon2id 参数
-.memory := uint32(64 * 1024) // 64MB
+	memory := uint32(64 * 1024) // 64MB
 	iterations := uint32(3)
 	parallelism := uint8(4)
 	keyLen := uint32(32)

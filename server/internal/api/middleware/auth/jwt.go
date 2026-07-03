@@ -3,6 +3,7 @@ package auth
 import (
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
@@ -88,14 +89,15 @@ func AdminMiddleware() echo.MiddlewareFunc {
 }
 
 // GenerateToken 生成JWT令牌
-func GenerateToken(userID, username, role, secret string, expiry int64) (string, error) {
+func GenerateToken(userID, username, role, secret string, expiry time.Duration) (string, error) {
+	now := time.Now()
 	claims := &JWTClaims{
 		UserID:   userID,
 		Username: username,
 		Role:     role,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(jwt.NewNumericDate(nil).Add(expiry)),
-			IssuedAt:  jwt.NewNumericDate(nil),
+			ExpiresAt: jwt.NewNumericDate(now.Add(expiry)),
+			IssuedAt:  jwt.NewNumericDate(now),
 			Issuer:    "yunonexus",
 		},
 	}
