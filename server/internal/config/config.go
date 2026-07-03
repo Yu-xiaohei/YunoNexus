@@ -1,9 +1,12 @@
 package config
 
 import (
+	"log"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/joho/godotenv"
 )
 
 // Config 应用配置
@@ -84,6 +87,11 @@ type LogConfig struct {
 
 // Load 加载配置
 func Load() *Config {
+	// 尝试加载 .env 文件
+	if err := godotenv.Load(); err != nil {
+		log.Println("未找到 .env 文件，使用系统环境变量")
+	}
+
 	return &Config{
 		Server: ServerConfig{
 			Host: getEnv("SERVER_HOST", "0.0.0.0"),
