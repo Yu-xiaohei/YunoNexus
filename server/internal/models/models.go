@@ -61,12 +61,12 @@ type Tunnel struct {
 	Protocol       string     `json:"protocol" db:"protocol"`
 	LocalHost      string     `json:"local_host" db:"local_host"`
 	LocalPort      int        `json:"local_port" db:"local_port"`
-	RemoteHost     string     `json:"remote_host" db:"remote_host"`
+	RemoteHost     *string    `json:"remote_host" db:"remote_host"`
 	RemotePort     int        `json:"remote_port" db:"remote_port"`
-	Domain         string     `json:"domain" db:"domain"`
+	Domain         *string    `json:"domain" db:"domain"`
 	Status         string     `json:"status" db:"status"`
-	ErrorMessage   string     `json:"error_message" db:"error_message"`
-	Config         string     `json:"config" db:"config"`
+	ErrorMessage   *string    `json:"error_message" db:"error_message"`
+	Config         *string    `json:"config" db:"config"`
 	BandwidthLimit *int64     `json:"bandwidth_limit" db:"bandwidth_limit"`
 	TrafficUsed    int64      `json:"traffic_used" db:"traffic_used"`
 	TrafficLimit   *int64     `json:"traffic_limit" db:"traffic_limit"`

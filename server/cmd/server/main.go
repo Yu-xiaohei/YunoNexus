@@ -52,10 +52,11 @@ func main() {
 	api.POST("/auth/login", authHandler.Login)
 	api.POST("/auth/refresh", authHandler.RefreshToken)
 
-	// 需要认证的路由（后续逐步添加处理器）
+	// 需要认证的路由
 	protected := api.Group("")
 	protected.Use(echoAuth.JWTMiddleware(cfg.JWT.Secret))
 
+	// 用户信息
 	protected.GET("/users/me", func(c echo.Context) error {
 		userID := c.Get("user_id").(string)
 		return c.JSON(http.StatusOK, map[string]interface{}{
@@ -64,6 +65,17 @@ func main() {
 			"data":    map[string]string{"user_id": userID},
 		})
 	})
+
+	// 隧道管理
+	tunnelHandler := handler.NewTunnelHandler(db, cfg)
+	protected.GET("/tunnels", tunnelHandler.List)
+	protected.POST("/tunnels", tunnelHandler.Create)
+	protected.GET("/tunnels/:id", tunnelHandler.Get)
+	protected.PUT("/tunnels/:id", tunnelHandler.Update)
+	protected.DELETE("/tunnels/:id", tunnelHandler.Delete)
+	protected.POST("/tunnels/:id/start", tunnelHandler.Start)
+	protected.POST("/tunnels/:id/stop", tunnelHandler.Stop)
+	protected.GET("/tunnels/:id/stats", tunnelHandler.GetStats)
 
 	addr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 

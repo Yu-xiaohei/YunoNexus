@@ -1,6 +1,6 @@
 # YUNO Nexus 更新日志
 
-> 作者: by.Yu_xiaohei  
+> by Yu_xiaohei  
 > 版本号规则: n.n.n[-beta]
 
 ---

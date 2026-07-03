@@ -2,7 +2,7 @@
 
 > 于的小窝 - 专属于你的轻量级内网穿透小工具
 > 
-> 版本: 0.1.0 | 作者: by.Yu_xiaohei
+> 版本: 0.1.0 | by Yu_xiaohei
 
 ## 功能特性
 
@@ -78,7 +78,7 @@ docker-compose up -d
 
 ## 作者
 
-**by.Yu_xiaohei**
+**Yu_xiaohei**
 
 ## 许可证
 

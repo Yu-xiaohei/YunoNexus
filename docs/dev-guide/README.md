@@ -1,7 +1,7 @@
 # YUNO Nexus 开发指南
 
 > 版本: 0.1.0  
-> 作者: by.Yu_xiaohei
+> by Yu_xiaohei
 
 ## 项目概述
 
