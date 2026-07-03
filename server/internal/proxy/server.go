@@ -152,7 +152,10 @@ func (c *Client) writePump() {
 			if err != nil {
 				return
 			}
-			w.Write(message)
+			if _, err := w.Write(message); err != nil {
+				w.Close()
+				return
+			}
 
 			if err := w.Close(); err != nil {
 				return
@@ -196,7 +199,11 @@ func (c *Client) handleAuth(server *Server, msg *Message) {
 		key[i] = byte(i)
 	}
 
-	enc, _ := NewEncryptor(key)
+	enc, err := NewEncryptor(key)
+	if err != nil {
+		log.Printf("创建加密器失败: %v", err)
+		return
+	}
 	c.Encryptor = enc
 	c.ID = "client-" + time.Now().Format("150405")
 

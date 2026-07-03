@@ -124,6 +124,8 @@ func main() {
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	e.Shutdown(shutdownCtx)
+	if err := e.Shutdown(shutdownCtx); err != nil {
+		log.Printf("关闭失败: %v", err)
+	}
 	log.Println("已关闭")
 }

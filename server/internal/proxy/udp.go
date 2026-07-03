@@ -72,7 +72,11 @@ func (f *UDPForwarder) readLoop() {
 			localConn = v.(*net.UDPConn)
 		} else {
 			// 连接到本地服务
-			localAddr, _ := net.ResolveUDPAddr("udp", "127.0.0.1:"+itoa(f.tunnel.LocalPort))
+			localAddr, err := net.ResolveUDPAddr("udp", "127.0.0.1:"+itoa(f.tunnel.LocalPort))
+			if err != nil {
+				log.Printf("解析UDP地址失败: %v", err)
+				continue
+			}
 			localConn, err = net.DialUDP("udp", nil, localAddr)
 			if err != nil {
 				log.Printf("UDP连接本地服务失败: %v", err)
@@ -84,7 +88,9 @@ func (f *UDPForwarder) readLoop() {
 		}
 
 		// 转发数据到本地
-		localConn.Write(buf[:n])
+		if _, err := localConn.Write(buf[:n]); err != nil {
+			log.Printf("UDP转发数据失败: %v", err)
+		}
 	}
 }
 
@@ -104,6 +110,8 @@ func (f *UDPForwarder) handleLocalResponse(addrKey string, remoteAddr *net.UDPAd
 		}
 
 		// 转发响应给客户端
-		f.conn.WriteToUDP(buf[:n], remoteAddr)
+		if _, err := f.conn.WriteToUDP(buf[:n], remoteAddr); err != nil {
+			log.Printf("UDP回传数据失败: %v", err)
+		}
 	}
 }
