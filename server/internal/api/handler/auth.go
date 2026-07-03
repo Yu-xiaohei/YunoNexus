@@ -254,13 +254,11 @@ func validatePassword(password string) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "密码长度至少8位")
 	}
 
-	var hasUpper, hasLower, hasDigit, hasSpecial bool
+	var hasLetter, hasDigit, hasSpecial bool
 	for _, c := range password {
 		switch {
-		case c >= 'A' && c <= 'Z':
-			hasUpper = true
-		case c >= 'a' && c <= 'z':
-			hasLower = true
+		case (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'):
+			hasLetter = true
 		case c >= '0' && c <= '9':
 			hasDigit = true
 		default:
@@ -268,8 +266,20 @@ func validatePassword(password string) error {
 		}
 	}
 
-	if !hasUpper || !hasLower || !hasDigit || !hasSpecial {
-		return echo.NewHTTPError(http.StatusBadRequest, "密码必须包含大小写字母、数字和特殊字符")
+	// 至少包含两种类型（字母、数字、特殊符号）
+	types := 0
+	if hasLetter {
+		types++
+	}
+	if hasDigit {
+		types++
+	}
+	if hasSpecial {
+		types++
+	}
+
+	if types < 2 {
+		return echo.NewHTTPError(http.StatusBadRequest, "密码必须包含字母、数字、特殊符号中的至少两种")
 	}
 
 	return nil
