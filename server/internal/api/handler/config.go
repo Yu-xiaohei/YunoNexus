@@ -29,15 +29,15 @@ func (h *ConfigHandler) Export(c echo.Context) error {
 	// 获取用户所有隧道
 	tunnels, _, err := h.TunnelQueries.List(c.Request().Context(), userID, 0, 100)
 	if err != nil {
-		return response.Error(c, http.StatusInternalServerError, "查询隧道失败")
+		return response.ErrorWithCode(c, http.StatusInternalServerError, 7091, "配置导出失败")
 	}
 
 	// 构建导出数据
 	exportData := map[string]interface{}{
-		"version":  "1.0",
-		"user_id":  userID,
-		"tunnels":  tunnels,
-		"exported_at": "2026-07-03",
+		"version":     "1.0",
+		"user_id":     userID,
+		"tunnels":     tunnels,
+		"exported_at": "2026-07-04",
 	}
 
 	return response.Success(c, http.StatusOK, exportData)
@@ -50,7 +50,7 @@ func (h *ConfigHandler) Import(c echo.Context) error {
 	}
 
 	if err := c.Bind(&req); err != nil {
-		return response.Error(c, http.StatusBadRequest, "请求参数错误")
+		return response.ErrorWithCode(c, http.StatusBadRequest, 7001, "请求参数错误")
 	}
 
 	// TODO: 解析配置并导入隧道

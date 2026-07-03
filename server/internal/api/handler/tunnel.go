@@ -59,7 +59,7 @@ func (h *TunnelHandler) List(c echo.Context) error {
 
 	tunnels, total, err := h.TunnelQueries.List(c.Request().Context(), userID, offset, pageSize)
 	if err != nil {
-		return response.ErrorWithCode(c, http.StatusInternalServerError, 5091, "系统出现未知错误，请刷新页面重试或联系管理员")
+		return response.ErrorWithCode(c, http.StatusInternalServerError, 5091, "隧道列表查询失败")
 	}
 
 	return response.PaginatedSuccess(c, tunnels, total, page, pageSize)
@@ -95,12 +95,11 @@ func (h *TunnelHandler) Create(c echo.Context) error {
 
 	count, err := h.TunnelQueries.CountByUser(ctx, userID)
 	if err != nil {
-		return response.ErrorWithCode(c, http.StatusInternalServerError, 5091, "系统出现未知错误，请刷新页面重试或联系管理员")
+		return response.ErrorWithCode(c, http.StatusInternalServerError, 5091, "隧道列表查询失败")
 	}
 
 	if count >= user.MaxTunnels {
-		return response.ErrorWithCode(c, http.StatusForbidden, 5081, 
-			"已达隧道数量上限（最多 "+strconv.Itoa(user.MaxTunnels)+" 个）")
+		return response.ErrorWithCode(c, http.StatusForbidden, 5081, "已达隧道创建数量上限")
 	}
 
 	// 分配端口
@@ -110,7 +109,7 @@ func (h *TunnelHandler) Create(c echo.Context) error {
 			h.Config.Security.AllowedPortsRange[0], 
 			h.Config.Security.AllowedPortsRange[1])
 		if err != nil {
-			return response.ErrorWithCode(c, http.StatusServiceUnavailable, 5071, "没有可用端口")
+			return response.ErrorWithCode(c, http.StatusServiceUnavailable, 5071, "服务器可用端口已满，请稍后再试")
 		}
 		remotePort = port
 	}
@@ -136,7 +135,7 @@ func (h *TunnelHandler) Create(c echo.Context) error {
 
 	if err := h.TunnelQueries.Create(ctx, tunnel); err != nil {
 		log.Printf("创建隧道失败: %v", err)
-		return response.ErrorWithCode(c, http.StatusInternalServerError, 5092, "系统出现未知错误，请刷新页面重试或联系管理员")
+		return response.ErrorWithCode(c, http.StatusInternalServerError, 5092, "隧道创建失败")
 	}
 
 	// 分配端口记录
@@ -199,7 +198,7 @@ func (h *TunnelHandler) Update(c echo.Context) error {
 	tunnel.TrafficLimit = req.TrafficLimit
 
 	if err := h.TunnelQueries.Update(ctx, tunnel); err != nil {
-		return response.ErrorWithCode(c, http.StatusInternalServerError, 5093, "系统出现未知错误，请刷新页面重试或联系管理员")
+		return response.ErrorWithCode(c, http.StatusInternalServerError, 5093, "隧道更新失败")
 	}
 
 	return response.Success(c, http.StatusOK, tunnel)
@@ -225,7 +224,7 @@ func (h *TunnelHandler) Delete(c echo.Context) error {
 	h.TunnelQueries.ReleasePort(ctx, tunnel.RemotePort)
 
 	if err := h.TunnelQueries.Delete(ctx, tunnelID); err != nil {
-		return response.ErrorWithCode(c, http.StatusInternalServerError, 5094, "系统出现未知错误，请刷新页面重试或联系管理员")
+		return response.ErrorWithCode(c, http.StatusInternalServerError, 5094, "隧道删除失败")
 	}
 
 	return response.Success(c, http.StatusOK, nil)
@@ -248,7 +247,7 @@ func (h *TunnelHandler) Start(c echo.Context) error {
 	}
 
 	if err := h.TunnelQueries.UpdateStatus(ctx, tunnelID, "active", ""); err != nil {
-		return response.ErrorWithCode(c, http.StatusInternalServerError, 5095, "系统出现未知错误，请刷新页面重试或联系管理员")
+		return response.ErrorWithCode(c, http.StatusInternalServerError, 5095, "隧道启动失败")
 	}
 
 	return response.Success(c, http.StatusOK, nil)
@@ -271,7 +270,7 @@ func (h *TunnelHandler) Stop(c echo.Context) error {
 	}
 
 	if err := h.TunnelQueries.UpdateStatus(ctx, tunnelID, "inactive", ""); err != nil {
-		return response.ErrorWithCode(c, http.StatusInternalServerError, 5096, "系统出现未知错误，请刷新页面重试或联系管理员")
+		return response.ErrorWithCode(c, http.StatusInternalServerError, 5096, "隧道停止失败")
 	}
 
 	return response.Success(c, http.StatusOK, nil)

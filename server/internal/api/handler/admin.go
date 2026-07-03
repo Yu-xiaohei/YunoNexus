@@ -37,7 +37,7 @@ func (h *AdminHandler) ListUsers(c echo.Context) error {
 
 	users, total, err := h.UserQueries.List(c.Request().Context(), offset, pageSize)
 	if err != nil {
-		return response.Error(c, http.StatusInternalServerError, "查询用户失败")
+		return response.ErrorWithCode(c, http.StatusInternalServerError, 8091, "用户列表查询失败")
 	}
 
 	return response.PaginatedSuccess(c, users, total, page, pageSize)
@@ -55,14 +55,14 @@ func (h *AdminHandler) UpdateUser(c echo.Context) error {
 	}
 
 	if err := c.Bind(&req); err != nil {
-		return response.Error(c, http.StatusBadRequest, "请求参数错误")
+		return response.ErrorWithCode(c, http.StatusBadRequest, 8001, "请求参数错误")
 	}
 
 	ctx := c.Request().Context()
 
 	user, err := h.UserQueries.GetByID(ctx, userID)
 	if err != nil {
-		return response.Error(c, http.StatusNotFound, "用户不存在")
+		return response.ErrorWithCode(c, http.StatusNotFound, 8031, "用户不存在")
 	}
 
 	if req.Role != "" {
@@ -79,7 +79,7 @@ func (h *AdminHandler) UpdateUser(c echo.Context) error {
 	}
 
 	if err := h.UserQueries.Update(ctx, user); err != nil {
-		return response.Error(c, http.StatusInternalServerError, "更新用户失败")
+		return response.ErrorWithCode(c, http.StatusInternalServerError, 8092, "用户信息更新失败")
 	}
 
 	return response.Success(c, http.StatusOK, user)
@@ -92,7 +92,7 @@ func (h *AdminHandler) SystemStats(c echo.Context) error {
 	// 获取用户总数
 	users, userTotal, err := h.UserQueries.List(ctx, 0, 1)
 	if err != nil {
-		userTotal = 0
+		return response.ErrorWithCode(c, http.StatusInternalServerError, 8093, "系统统计数据获取失败")
 	}
 	_ = users
 
@@ -112,9 +112,9 @@ func (h *AdminHandler) SystemStats(c echo.Context) error {
 func (h *AdminHandler) AuditLogs(c echo.Context) error {
 	// TODO: 实现审计日志查询
 	return response.Success(c, http.StatusOK, map[string]interface{}{
-		"items":  []interface{}{},
-		"total":  0,
-		"page":   1,
+		"items":     []interface{}{},
+		"total":     0,
+		"page":      1,
 		"page_size": 20,
 	})
 }

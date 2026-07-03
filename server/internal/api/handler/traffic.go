@@ -26,7 +26,7 @@ func (h *TrafficHandler) Overview(c echo.Context) error {
 
 	stats, err := h.TrafficQueries.GetUserStats(c.Request().Context(), userID)
 	if err != nil {
-		return response.Error(c, http.StatusInternalServerError, "查询流量统计失败")
+		return response.ErrorWithCode(c, http.StatusInternalServerError, 6091, "流量统计查询失败")
 	}
 
 	return response.Success(c, http.StatusOK, stats)
@@ -41,16 +41,16 @@ func (h *TrafficHandler) ByTunnel(c echo.Context) error {
 	tunnelQueries := database.NewTunnelQueries(h.TrafficQueries.DB)
 	tunnel, err := tunnelQueries.GetByID(c.Request().Context(), tunnelID)
 	if err != nil {
-		return response.Error(c, http.StatusNotFound, "隧道不存在")
+		return response.ErrorWithCode(c, http.StatusNotFound, 5031, "隧道不存在")
 	}
 
 	if tunnel.UserID != userID {
-		return response.Error(c, http.StatusForbidden, "无权访问此隧道")
+		return response.ErrorWithCode(c, http.StatusForbidden, 5021, "当前用户权限不足")
 	}
 
 	stats, err := h.TrafficQueries.GetTunnelStats(c.Request().Context(), tunnelID)
 	if err != nil {
-		return response.Error(c, http.StatusInternalServerError, "查询流量统计失败")
+		return response.ErrorWithCode(c, http.StatusInternalServerError, 6091, "流量统计查询失败")
 	}
 
 	return response.Success(c, http.StatusOK, stats)
@@ -62,7 +62,7 @@ func (h *TrafficHandler) ByUser(c echo.Context) error {
 
 	stats, err := h.TrafficQueries.GetUserStats(c.Request().Context(), targetUserID)
 	if err != nil {
-		return response.Error(c, http.StatusInternalServerError, "查询流量统计失败")
+		return response.ErrorWithCode(c, http.StatusInternalServerError, 6091, "流量统计查询失败")
 	}
 
 	return response.Success(c, http.StatusOK, stats)
