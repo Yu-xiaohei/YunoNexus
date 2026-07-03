@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>架构设计 - YUNO Nexus</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 20px; }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-bottom: 20px; }
+        h2 { color: #34495e; margin-top: 30px; }
+        h3 { color: #7f8c8d; }
+        a { color: #3498db; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-family: monospace; }
+        pre { background: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background: #f4f4f4; }
+        .nav { background: #2c3e50; padding: 15px; border-radius: 5px; margin-bottom: 30px; }
+        .nav a { color: #ecf0f1; margin-right: 20px; }
+        .nav a:hover { color: #3498db; }
+        .back { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="Home.html">首页</a>
+        <a href="Architecture.html">架构设计</a>
+        <a href="API-Reference.html">API文档</a>
+        <a href="Error-Codes.html">错误码</a>
+        <a href="CHANGELOG.html">更新日志</a>
+    </div>
+
+    <div class="back"><a href="Home.html">← 返回首页</a></div>
+
+    <h1>架构设计</h1>
+
+    <h2>系统架构</h2>
+    <pre><code>┌─────────────────────────────────────────────────────────────────────────┐
+│                          互联网 / 公网                                    │
+└───────────────────────────┬─────────────────────────────────────────────┘
+                            │
+              ┌─────────────▼─────────────┐
+              │     Nginx 反向代理         │
+              │  :443 (HTTPS+WSS)         │
+              └─────────┬───────┬─────────┘
+                        │       │
+          ┌─────────────▼──┐  ┌─▼──────────────┐
+          │  Web 管理界面   │  │  Go API 服务    │
+          │  (React SPA)   │  │  (Echo)         │
+          └────────────────┘  └──────┬──────────┘
+                                     │
+                    ┌────────────────▼────────────────┐
+                    │         PostgreSQL               │
+                    └─────────────────────────────────┘
+                                     │
+              ┌──────────────────────▼──────────────────────┐
+              │           Go 核心代理引擎                     │
+              │  TCP/UDP/HTTP/WebSocket 转发                 │
+              └──────────────┬─────────────────────────────┘
+                             │ 加密隧道 (AES-256-GCM + zlib)
+              ┌──────────────┼──────────────┐
+              │              │              │
+     ┌────────▼────┐  ┌─────▼──────┐  ┌───▼──────────┐
+     │  Windows    │  │   Linux    │  │   Android    │
+     │  (Tauri+Go) │  │ (Tauri+Go) │  │(Flutter+Go)  │
+     └────────────┘  └────────────┘  └──────────────┘</code></pre>
+
+    <h2>技术栈</h2>
+    <table>
+        <tr><th>组件</th><th>技术</th><th>版本</th></tr>
+        <tr><td>服务端</td><td>Go + Echo</td><td>Go 1.22+</td></tr>
+        <tr><td>数据库</td><td>PostgreSQL</td><td>16+</td></tr>
+        <tr><td>Web UI</td><td>React + TypeScript + Vite</td><td>React 18+</td></tr>
+        <tr><td>UI 框架</td><td>Ant Design 5</td><td>-</td></tr>
+        <tr><td>Windows/Linux 客户端</td><td>Tauri 2.x + Go</td><td>-</td></tr>
+        <tr><td>Android 客户端</td><td>Flutter 3.x + Go</td><td>-</td></tr>
+        <tr><td>加密</td><td>AES-256-GCM + zlib</td><td>-</td></tr>
+        <tr><td>传输层</td><td>WebSocket</td><td>-</td></tr>
+        <tr><td>容器化</td><td>Docker + Docker Compose</td><td>-</td></tr>
+        <tr><td>反向代理</td><td>Nginx</td><td>1.25+</td></tr>
+    </table>
+
+    <h2>端口规划</h2>
+    <table>
+        <tr><th>端口用途</th><th>端口号</th><th>对外暴露</th><th>说明</th></tr>
+        <tr><td>HTTPS伪装</td><td><strong>443</strong></td><td>是</td><td>标准HTTPS，伪装成正常网站</td></tr>
+        <tr><td>客户端WebSocket</td><td><strong>9443</strong></td><td>是</td><td>避开常见8443/8080</td></tr>
+        <tr><td>隧道端口范围</td><td><strong>30000-30100</strong></td><td>是</td><td>避开FRP/NPS常用端口</td></tr>
+        <tr><td>API服务</td><td>8080</td><td>否</td><td>内部通信，不对外</td></tr>
+        <tr><td>PostgreSQL</td><td>5432</td><td>否</td><td>内部数据库</td></tr>
+        <tr><td>Redis</td><td>6379</td><td>否</td><td>内部缓存</td></tr>
+    </table>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>更新日志 - YUNO Nexus</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 20px; }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-bottom: 20px; }
+        h2 { color: #34495e; margin-top: 30px; }
+        h3 { color: #7f8c8d; }
+        a { color: #3498db; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-family: monospace; }
+        ul { margin-left: 20px; }
+        li { margin: 5px 0; }
+        .nav { background: #2c3e50; padding: 15px; border-radius: 5px; margin-bottom: 30px; }
+        .nav a { color: #ecf0f1; margin-right: 20px; }
+        .nav a:hover { color: #3498db; }
+        .back { margin-bottom: 20px; }
+        .version { background: #3498db; color: white; padding: 5px 15px; border-radius: 15px; display: inline-block; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="Home.html">首页</a>
+        <a href="Architecture.html">架构设计</a>
+        <a href="API-Reference.html">API文档</a>
+        <a href="Error-Codes.html">错误码</a>
+        <a href="CHANGELOG.html">更新日志</a>
+    </div>
+
+    <div class="back"><a href="Home.html">← 返回首页</a></div>
+
+    <h1>更新日志</h1>
+
+    <h2><span class="version">0.2.0</span> 2026-07-04</h2>
+    <h3>M1第一阶段：服务端核心</h3>
+    
+    <h4>认证模块</h4>
+    <ul>
+        <li>用户注册/登录</li>
+        <li>JWT令牌生成/验证</li>
+        <li>TOTP两步验证</li>
+        <li>登录失败锁定（20次/5分钟）</li>
+        <li>密码强度验证</li>
+    </ul>
+
+    <h4>API处理器（26个接口）</h4>
+    <ul>
+        <li>认证接口：注册、登录、刷新令牌</li>
+        <li>用户接口：获取用户信息</li>
+        <li>设备接口：列表、详情、更新、吊销</li>
+        <li>隧道接口：CRUD + 启停 + 统计</li>
+        <li>流量接口：概览、按隧道查询</li>
+        <li>配置接口：导入导出</li>
+        <li>管理员接口：用户管理、系统统计、审计日志、系统配置</li>
+    </ul>
+
+    <h4>代理引擎</h4>
+    <ul>
+        <li>WebSocket服务器</li>
+        <li>消息编解码</li>
+        <li>AES-256-GCM加密</li>
+        <li>zlib压缩</li>
+        <li>TCP/UDP/HTTP转发器</li>
+    </ul>
+
+    <h4>安全修复</h4>
+    <ul>
+        <li>P0：WebSocket认证、硬编码密钥、敏感配置泄露</li>
+        <li>P1：跨域保护、IDOR漏洞、TOTP密钥随机、CORS配置、角色白名单</li>
+        <li>P2：解压炸弹、JSON注入、Client ID可预测</li>
+    </ul>
+
+    <h4>错误码体系</h4>
+    <ul>
+        <li>四位错误码：XYYY格式</li>
+        <li>每个错误码唯一标识</li>
+    </ul>
+
+    <hr>
+
+    <h2><span class="version">0.1.0</span> 2026-07-03</h2>
+    <h3>初始版本</h3>
+    <ul>
+        <li>项目结构搭建</li>
+        <li>服务端基础框架</li>
+        <li>数据库设计（10个表）</li>
+        <li>Docker配置</li>
+        <li>架构设计文档</li>
+    </ul>
+</body>
+</html>
