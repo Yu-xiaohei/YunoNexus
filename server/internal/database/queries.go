@@ -198,19 +198,16 @@ func (q *DeviceQueries) GetByID(ctx context.Context, id string) (*models.Device,
 	return device, nil
 }
 
-// GetByFingerprint 根据指纹获取设备
+// GetByFingerprint 根据指纹获取设备（简化查询，用于登录）
 func (q *DeviceQueries) GetByFingerprint(ctx context.Context, userID, fingerprint string) (*models.Device, error) {
 	query := `
-		SELECT id, user_id, device_name, device_type, fingerprint, os_version, 
-		       app_version, public_key, status, ip_whitelist, last_seen_at, created_at, updated_at
+		SELECT id, user_id, device_name, device_type, fingerprint, status
 		FROM devices WHERE user_id = $1 AND fingerprint = $2`
 
 	device := &models.Device{}
 	err := q.DB.Pool.QueryRow(ctx, query, userID, fingerprint).Scan(
 		&device.ID, &device.UserID, &device.DeviceName, &device.DeviceType,
-		&device.Fingerprint, &device.OSVersion, &device.AppVersion,
-		&device.PublicKey, &device.Status, &device.IPWhitelist,
-		&device.LastSeenAt, &device.CreatedAt, &device.UpdatedAt,
+		&device.Fingerprint, &device.Status,
 	)
 
 	if err == pgx.ErrNoRows {

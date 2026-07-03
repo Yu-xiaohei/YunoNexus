@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log"
 	"net/http"
 	"time"
 
@@ -133,11 +134,16 @@ func (h *AuthHandler) Login(c echo.Context) error {
 	// 获取用户
 	user, err := h.UserQueries.GetByEmail(ctx, req.Email)
 	if err != nil {
+		log.Printf("登录失败 - 获取用户错误: %v", err)
 		return response.Error(c, http.StatusUnauthorized, "邮箱或密码错误")
 	}
 
+	log.Printf("登录 - 用户ID: %s, 邮箱: %s", user.ID, user.Email)
+
 	// 验证密码
-	if ok, err := auth.VerifyPassword(req.Password, user.PasswordHash); !ok || err != nil {
+	ok, verifyErr := auth.VerifyPassword(req.Password, user.PasswordHash)
+	log.Printf("登录 - 密码验证结果: ok=%v, err=%v", ok, verifyErr)
+	if !ok || verifyErr != nil {
 		return response.Error(c, http.StatusUnauthorized, "邮箱或密码错误")
 	}
 
@@ -147,12 +153,12 @@ func (h *AuthHandler) Login(c echo.Context) error {
 	}
 
 	// 检查两步验证
-	if user.TwoFactorKey != "" {
+	if user.TwoFactorKey != nil && *user.TwoFactorKey != "" {
 		if req.TOTPCode == "" {
 			return response.Error(c, http.StatusUnauthorized, "需要两步验证")
 		}
 
-		totp := auth.NewTOTP(user.TwoFactorKey, "YUNO Nexus", user.Email)
+		totp := auth.NewTOTP(*user.TwoFactorKey, "YUNO Nexus", user.Email)
 		if !totp.VerifyCode(req.TOTPCode, 1) {
 			return response.Error(c, http.StatusUnauthorized, "两步验证代码错误")
 		}
@@ -161,6 +167,7 @@ func (h *AuthHandler) Login(c echo.Context) error {
 	// 获取或创建设备
 	device, err := h.DeviceQueries.GetByFingerprint(ctx, user.ID, req.DeviceFingerprint)
 	if err != nil {
+		log.Printf("登录 - 设备不存在，尝试创建: %v", err)
 		// 设备不存在，创建新设备
 		device = &models.Device{
 			UserID:      user.ID,
@@ -169,13 +176,16 @@ func (h *AuthHandler) Login(c echo.Context) error {
 			Fingerprint: req.DeviceFingerprint,
 			Status:      "active",
 		}
-		if err := h.DeviceQueries.Create(ctx, device); err != nil {
+		if createErr := h.DeviceQueries.Create(ctx, device); createErr != nil {
+			log.Printf("登录 - 创建设备失败: %v", createErr)
 			return response.Error(c, http.StatusInternalServerError, "创建设备失败")
 		}
+		log.Printf("登录 - 设备创建成功: %s", device.ID)
 	} else {
+		log.Printf("登录 - 设备已存在: %s", device.ID)
 		// 更新设备信息
-		device.LastSeenAt = &time.Time{}
-		*device.LastSeenAt = time.Now()
+		now := time.Now()
+		device.LastSeenAt = &now
 		h.DeviceQueries.UpdateLastSeen(ctx, device.ID)
 	}
 

@@ -16,7 +16,7 @@ type User struct {
 	MaxBandwidth int64      `json:"max_bandwidth" db:"max_bandwidth"`
 	Status       string     `json:"status" db:"status"`
 	ExpiresAt    *time.Time `json:"expires_at" db:"expires_at"`
-	TwoFactorKey string     `json:"-" db:"two_factor_key"`
+	TwoFactorKey *string    `json:"-" db:"two_factor_key"`
 	CreatedAt    time.Time  `json:"created_at" db:"created_at"`
 	UpdatedAt    time.Time  `json:"updated_at" db:"updated_at"`
 }
@@ -28,9 +28,9 @@ type Device struct {
 	DeviceName  string     `json:"device_name" db:"device_name"`
 	DeviceType  string     `json:"device_type" db:"device_type"`
 	Fingerprint string     `json:"fingerprint" db:"fingerprint"`
-	OSVersion   string     `json:"os_version" db:"os_version"`
-	AppVersion  string     `json:"app_version" db:"app_version"`
-	PublicKey   string     `json:"public_key" db:"public_key"`
+	OSVersion   *string    `json:"os_version" db:"os_version"`
+	AppVersion  *string    `json:"app_version" db:"app_version"`
+	PublicKey   *string    `json:"public_key" db:"public_key"`
 	Status      string     `json:"status" db:"status"`
 	IPWhitelist []string   `json:"ip_whitelist" db:"ip_whitelist"`
 	LastSeenAt  *time.Time `json:"last_seen_at" db:"last_seen_at"`
