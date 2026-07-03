@@ -125,8 +125,8 @@ func Load() *Config {
 			HeartbeatInterval: getEnvInt("HEARTBEAT_INTERVAL", 30),
 		},
 		Security: SecurityConfig{
-			LoginMaxAttempts:    getEnvInt("LOGIN_MAX_ATTEMPTS", 5),
-			LoginLockoutDuration: getEnvDuration("LOGIN_LOCKOUT_DURATION", 15*time.Minute),
+			LoginMaxAttempts:    getEnvInt("LOGIN_MAX_ATTEMPTS", 20),
+			LoginLockoutDuration: getEnvDuration("LOGIN_LOCKOUT_DURATION", 5*time.Minute),
 			SessionTimeout:      getEnvDuration("SESSION_TIMEOUT", 2*time.Hour),
 			AllowedPortsRange:   [2]int{
 				getEnvInt("ALLOWED_PORT_START", 30000),

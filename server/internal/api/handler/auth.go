@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"log"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -18,14 +18,16 @@ type AuthHandler struct {
 	UserQueries  *database.UserQueries
 	DeviceQueries *database.DeviceQueries
 	Config       *config.Config
+	Limiter      *auth.LoginLimiter
 }
 
 // NewAuthHandler 创建认证处理器
 func NewAuthHandler(db *database.DB, cfg *config.Config) *AuthHandler {
 	return &AuthHandler{
-		UserQueries:  database.NewUserQueries(db),
+		UserQueries:   database.NewUserQueries(db),
 		DeviceQueries: database.NewDeviceQueries(db),
-		Config:       cfg,
+		Config:        cfg,
+		Limiter:       auth.NewLoginLimiter(cfg.Security.LoginMaxAttempts, cfg.Security.LoginLockoutDuration),
 	}
 }
 
@@ -130,22 +132,36 @@ func (h *AuthHandler) Login(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
+	identifier := req.Email
+
+	// 检查是否被锁定
+	if locked, remain := h.Limiter.IsLocked(identifier); locked {
+		return response.Error(c, http.StatusTooManyRequests,
+			fmt.Sprintf("您的输入错误次数过多，请在 %.0f 分钟后重试", remain.Minutes()))
+	}
 
 	// 获取用户
 	user, err := h.UserQueries.GetByEmail(ctx, req.Email)
 	if err != nil {
-		log.Printf("登录失败 - 获取用户错误: %v", err)
-		return response.Error(c, http.StatusUnauthorized, "邮箱或密码错误")
+		h.Limiter.RecordFailure(identifier)
+		return response.Error(c, http.StatusUnauthorized, "您的账号或密码输入错误")
 	}
-
-	log.Printf("登录 - 用户ID: %s, 邮箱: %s", user.ID, user.Email)
 
 	// 验证密码
 	ok, verifyErr := auth.VerifyPassword(req.Password, user.PasswordHash)
-	log.Printf("登录 - 密码验证结果: ok=%v, err=%v", ok, verifyErr)
 	if !ok || verifyErr != nil {
-		return response.Error(c, http.StatusUnauthorized, "邮箱或密码错误")
+		h.Limiter.RecordFailure(identifier)
+		failCount := h.Limiter.GetFailCount(identifier)
+		remaining := h.Config.Security.LoginMaxAttempts - failCount
+		if remaining <= 0 {
+			return response.Error(c, http.StatusTooManyRequests,
+				fmt.Sprintf("您的输入错误次数过多，请在 %.0f 分钟后重试", h.Config.Security.LoginLockoutDuration.Minutes()))
+		}
+		return response.Error(c, http.StatusUnauthorized, "您的账号或密码输入错误")
 	}
+
+	// 密码正确，清除失败记录
+	h.Limiter.RecordSuccess(identifier)
 
 	// 检查用户状态
 	if user.Status != "active" {
@@ -167,8 +183,6 @@ func (h *AuthHandler) Login(c echo.Context) error {
 	// 获取或创建设备
 	device, err := h.DeviceQueries.GetByFingerprint(ctx, user.ID, req.DeviceFingerprint)
 	if err != nil {
-		log.Printf("登录 - 设备不存在，尝试创建: %v", err)
-		// 设备不存在，创建新设备
 		device = &models.Device{
 			UserID:      user.ID,
 			DeviceName:  req.DeviceName,
@@ -177,13 +191,9 @@ func (h *AuthHandler) Login(c echo.Context) error {
 			Status:      "active",
 		}
 		if createErr := h.DeviceQueries.Create(ctx, device); createErr != nil {
-			log.Printf("登录 - 创建设备失败: %v", createErr)
 			return response.Error(c, http.StatusInternalServerError, "创建设备失败")
 		}
-		log.Printf("登录 - 设备创建成功: %s", device.ID)
 	} else {
-		log.Printf("登录 - 设备已存在: %s", device.ID)
-		// 更新设备信息
 		now := time.Now()
 		device.LastSeenAt = &now
 		h.DeviceQueries.UpdateLastSeen(ctx, device.ID)
