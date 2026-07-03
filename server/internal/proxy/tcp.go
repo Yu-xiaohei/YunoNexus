@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"encoding/json"
 	"io"
 	"log"
 	"net"
@@ -78,12 +79,18 @@ func (f *TCPForwarder) handleConn(conn net.Conn) {
 		conn.Close()
 	}()
 
-	// 发送DataOpen消息给客户端
+	// 发送DataOpen消息给客户端（使用json.Marshal防止注入）
+	openPayload, _ := json.Marshal(map[string]string{
+		"tunnel_id":     f.tunnel.ID,
+		"connection_id": connID,
+		"protocol":      "tcp",
+		"source_addr":   conn.RemoteAddr().String(),
+	})
 	openMsg := &Message{
-		Type:  MsgTypeDataOpen,
-		Flag:  MsgFlagNone,
-		MsgID: 1,
-		Payload: []byte(`{"tunnel_id":"` + f.tunnel.ID + `","connection_id":"` + connID + `","protocol":"tcp","source_addr":"` + conn.RemoteAddr().String() + `"}`),
+		Type:    MsgTypeDataOpen,
+		Flag:    MsgFlagNone,
+		MsgID:   1,
+		Payload: openPayload,
 	}
 	f.client.Send <- openMsg.Encode()
 
@@ -98,20 +105,23 @@ func (f *TCPForwarder) handleConn(conn net.Conn) {
 
 		// 发送数据给客户端
 		dataMsg := &Message{
-			Type:  MsgTypeDataTransfer,
-			Flag:  MsgFlagNone,
-			MsgID: 1,
+			Type:    MsgTypeDataTransfer,
+			Flag:    MsgFlagNone,
+			MsgID:   1,
 			Payload: buf[:n],
 		}
 		f.client.Send <- dataMsg.Encode()
 	}
 
-	// 发送关闭消息
+	// 发送关闭消息（使用json.Marshal防止注入）
+	closePayload, _ := json.Marshal(map[string]string{
+		"connection_id": connID,
+	})
 	closeMsg := &Message{
 		Type:    MsgTypeDataClose,
 		Flag:    MsgFlagNone,
 		MsgID:   1,
-		Payload: []byte(`{"connection_id":"` + connID + `"}`),
+		Payload: closePayload,
 	}
 	f.client.Send <- closeMsg.Encode()
 }

@@ -247,7 +247,10 @@ func (c *Client) handleAuth(server *Server, msg *Message) {
 	c.Encryptor = enc
 	c.UserID = claims.UserID
 	c.DeviceID = authPayload.DeviceID
-	c.ID = "client-" + fmt.Sprintf("%d", time.Now().UnixNano())
+	// 使用随机字节生成不可预测的Client ID
+	randomID := make([]byte, 16)
+	rand.Read(randomID)
+	c.ID = fmt.Sprintf("client-%x", randomID)
 
 	server.clients.Store(c.ID, c)
 

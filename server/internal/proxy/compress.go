@@ -13,6 +13,9 @@ type Compressor struct {
 	level int
 }
 
+// 最大解压大小限制（10MB）
+const MaxDecompressedSize = 10 * 1024 * 1024
+
 // NewCompressor 创建压缩器
 func NewCompressor(level int) *Compressor {
 	if level < 1 || level > 9 {
@@ -41,7 +44,7 @@ func (c *Compressor) Compress(data []byte) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// Decompress 解压数据
+// Decompress 解压数据（带大小限制，防止解压炸弹）
 func (c *Compressor) Decompress(data []byte) ([]byte, error) {
 	r, err := zlib.NewReader(bytes.NewReader(data))
 	if err != nil {
@@ -49,9 +52,16 @@ func (c *Compressor) Decompress(data []byte) ([]byte, error) {
 	}
 	defer r.Close()
 
-	result, err := io.ReadAll(r)
+	// 使用LimitReader限制解压后的最大大小
+	limitedReader := io.LimitReader(r, MaxDecompressedSize+1)
+	result, err := io.ReadAll(limitedReader)
 	if err != nil {
 		return nil, fmt.Errorf("解压数据失败: %w", err)
+	}
+
+	// 检查是否超过大小限制
+	if len(result) > MaxDecompressedSize {
+		return nil, fmt.Errorf("解压后数据超过大小限制（最大%dMB）", MaxDecompressedSize/1024/1024)
 	}
 
 	return result, nil
