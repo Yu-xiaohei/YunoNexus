@@ -77,6 +77,35 @@ func main() {
 	protected.POST("/tunnels/:id/stop", tunnelHandler.Stop)
 	protected.GET("/tunnels/:id/stats", tunnelHandler.GetStats)
 
+	// 设备管理
+	deviceHandler := handler.NewDeviceHandler(db)
+	protected.GET("/devices", deviceHandler.List)
+	protected.GET("/devices/:id", deviceHandler.Get)
+	protected.PUT("/devices/:id", deviceHandler.Update)
+	protected.DELETE("/devices/:id", deviceHandler.Delete)
+
+	// 流量统计
+	trafficHandler := handler.NewTrafficHandler(db)
+	protected.GET("/traffic/overview", trafficHandler.Overview)
+	protected.GET("/traffic/tunnel/:id", trafficHandler.ByTunnel)
+	protected.GET("/traffic/user/:id", trafficHandler.ByUser)
+
+	// 配置导入导出
+	configHandler := handler.NewConfigHandler(db)
+	protected.GET("/config/export", configHandler.Export)
+	protected.POST("/config/import", configHandler.Import)
+
+	// 管理员路由
+	admin := protected.Group("/admin")
+	admin.Use(echoAuth.AdminMiddleware())
+	adminHandler := handler.NewAdminHandler(db)
+	admin.GET("/users", adminHandler.ListUsers)
+	admin.PUT("/users/:id", adminHandler.UpdateUser)
+	admin.GET("/system/stats", adminHandler.SystemStats)
+	admin.GET("/audit-logs", adminHandler.AuditLogs)
+	admin.GET("/system/config", adminHandler.GetSystemConfig)
+	admin.PUT("/system/config", adminHandler.UpdateSystemConfig)
+
 	addr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)

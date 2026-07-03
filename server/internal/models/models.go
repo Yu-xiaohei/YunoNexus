@@ -99,6 +99,13 @@ type TrafficLog struct {
 	RecordedAt  time.Time `json:"recorded_at" db:"recorded_at"`
 }
 
+// TrafficStats 流量统计
+type TrafficStats struct {
+	TotalSent       int64 `json:"total_sent"`
+	TotalRecv       int64 `json:"total_recv"`
+	TotalConnections int64 `json:"total_connections"`
+}
+
 // SystemConfig 系统配置模型
 type SystemConfig struct {
 	Key         string    `json:"key" db:"key"`
