@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API文档 - YUNO Nexus</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 20px; }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-bottom: 20px; }
+        h2 { color: #34495e; margin-top: 30px; }
+        h3 { color: #7f8c8d; }
+        a { color: #3498db; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-family: monospace; }
+        pre { background: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background: #f4f4f4; }
+        .nav { background: #2c3e50; padding: 15px; border-radius: 5px; margin-bottom: 30px; }
+        .nav a { color: #ecf0f1; margin-right: 20px; }
+        .nav a:hover { color: #3498db; }
+        .back { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="Home.html">首页</a>
+        <a href="Architecture.html">架构设计</a>
+        <a href="API-Reference.html">API文档</a>
+        <a href="Error-Codes.html">错误码</a>
+        <a href="CHANGELOG.html">更新日志</a>
+    </div>
+
+    <div class="back"><a href="Home.html">← 返回首页</a></div>
+
+    <h1>API 接口文档</h1>
+
+    <h2>基础信息</h2>
+    <ul>
+        <li>基础路径: <code>/api/v1</code></li>
+        <li>认证方式: Bearer Token (JWT)</li>
+        <li>内容类型: <code>application/json</code></li>
+    </ul>
+
+    <h2>认证接口</h2>
+    <table>
+        <tr><th>方法</th><th>路径</th><th>说明</th></tr>
+        <tr><td>POST</td><td>/api/v1/auth/register</td><td>注册新用户</td></tr>
+        <tr><td>POST</td><td>/api/v1/auth/login</td><td>用户登录</td></tr>
+        <tr><td>POST</td><td>/api/v1/auth/refresh</td><td>刷新Token</td></tr>
+    </table>
+
+    <h2>用户接口</h2>
+    <table>
+        <tr><th>方法</th><th>路径</th><th>说明</th></tr>
+        <tr><td>GET</td><td>/api/v1/users/me</td><td>获取当前用户信息</td></tr>
+    </table>
+
+    <h2>设备接口</h2>
+    <table>
+        <tr><th>方法</th><th>路径</th><th>说明</th></tr>
+        <tr><td>GET</td><td>/api/v1/devices</td><td>设备列表</td></tr>
+        <tr><td>GET</td><td>/api/v1/devices/:id</td><td>设备详情</td></tr>
+        <tr><td>PUT</td><td>/api/v1/devices/:id</td><td>更新设备</td></tr>
+        <tr><td>DELETE</td><td>/api/v1/devices/:id</td><td>吊销设备</td></tr>
+    </table>
+
+    <h2>隧道接口</h2>
+    <table>
+        <tr><th>方法</th><th>路径</th><th>说明</th></tr>
+        <tr><td>GET</td><td>/api/v1/tunnels</td><td>隧道列表</td></tr>
+        <tr><td>POST</td><td>/api/v1/tunnels</td><td>创建隧道</td></tr>
+        <tr><td>GET</td><td>/api/v1/tunnels/:id</td><td>隧道详情</td></tr>
+        <tr><td>PUT</td><td>/api/v1/tunnels/:id</td><td>更新隧道</td></tr>
+        <tr><td>DELETE</td><td>/api/v1/tunnels/:id</td><td>删除隧道</td></tr>
+        <tr><td>POST</td><td>/api/v1/tunnels/:id/start</td><td>启动隧道</td></tr>
+        <tr><td>POST</td><td>/api/v1/tunnels/:id/stop</td><td>停止隧道</td></tr>
+        <tr><td>GET</td><td>/api/v1/tunnels/:id/stats</td><td>隧道统计</td></tr>
+    </table>
+
+    <h2>流量接口</h2>
+    <table>
+        <tr><th>方法</th><th>路径</th><th>说明</th></tr>
+        <tr><td>GET</td><td>/api/v1/traffic/overview</td><td>流量概览</td></tr>
+        <tr><td>GET</td><td>/api/v1/traffic/tunnel/:id</td><td>按隧道查询流量</td></tr>
+    </table>
+
+    <h2>配置接口</h2>
+    <table>
+        <tr><th>方法</th><th>路径</th><th>说明</th></tr>
+        <tr><td>GET</td><td>/api/v1/config/export</td><td>导出配置</td></tr>
+        <tr><td>POST</td><td>/api/v1/config/import</td><td>导入配置</td></tr>
+    </table>
+
+    <h2>管理员接口</h2>
+    <table>
+        <tr><th>方法</th><th>路径</th><th>说明</th></tr>
+        <tr><td>GET</td><td>/api/v1/admin/users</td><td>用户列表</td></tr>
+        <tr><td>PUT</td><td>/api/v1/admin/users/:id</td><td>更新用户</td></tr>
+        <tr><td>GET</td><td>/api/v1/admin/system/stats</td><td>系统统计</td></tr>
+        <tr><td>GET</td><td>/api/v1/admin/audit-logs</td><td>审计日志</td></tr>
+        <tr><td>GET</td><td>/api/v1/admin/system/config</td><td>系统配置</td></tr>
+        <tr><td>PUT</td><td>/api/v1/admin/system/config</td><td>更新系统配置</td></tr>
+    </table>
+</body>
+</html>
