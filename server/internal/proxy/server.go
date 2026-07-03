@@ -30,6 +30,7 @@ type Client struct {
 	Compressor *Compressor
 	LastPing   time.Time
 	Tunnels    map[string]*Tunnel
+	Forwarders map[string]interface{} // 转发器实例
 	mu         sync.Mutex
 }
 
@@ -186,9 +187,20 @@ func (c *Client) handleMessage(server *Server, msg *Message) {
 
 // handleAuth 处理认证
 func (c *Client) handleAuth(server *Server, msg *Message) {
-	// TODO: 验证token，初始化加密器
-	// 目前简化处理
-	log.Printf("收到认证消息")
+	// 简化认证，实际应验证JWT token
+	log.Printf("收到认证消息，客户端认证成功")
+
+	// 生成测试密钥
+	key := make([]byte, 32)
+	for i := range key {
+		key[i] = byte(i)
+	}
+
+	enc, _ := NewEncryptor(key)
+	c.Encryptor = enc
+	c.ID = "client-" + time.Now().Format("150405")
+
+	server.clients.Store(c.ID, c)
 
 	response := &Message{
 		Type:    MsgTypeAuthResponse,
@@ -198,7 +210,7 @@ func (c *Client) handleAuth(server *Server, msg *Message) {
 	}
 
 	c.Send <- response.Encode()
-	log.Printf("客户端认证成功")
+	log.Printf("客户端 %s 已连接", c.ID)
 }
 
 // handleHeartbeat 处理心跳
