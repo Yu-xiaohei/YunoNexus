@@ -34,7 +34,7 @@ func JWTMiddleware(secret string) echo.MiddlewareFunc {
 			parts := strings.SplitN(authHeader, " ", 2)
 			if len(parts) != 2 || parts[0] != "Bearer" {
 				return c.JSON(http.StatusUnauthorized, map[string]interface{}{
-					"code":    1001,
+					"code":    1002,
 					"message": "认证令牌格式错误",
 				})
 			}
@@ -48,7 +48,7 @@ func JWTMiddleware(secret string) echo.MiddlewareFunc {
 
 			if err != nil || !token.Valid {
 				return c.JSON(http.StatusUnauthorized, map[string]interface{}{
-					"code":    1001,
+					"code":    1003,
 					"message": "认证令牌无效或已过期",
 				})
 			}
@@ -57,7 +57,7 @@ func JWTMiddleware(secret string) echo.MiddlewareFunc {
 			claims, ok := token.Claims.(*JWTClaims)
 			if !ok {
 				return c.JSON(http.StatusUnauthorized, map[string]interface{}{
-					"code":    1001,
+					"code":    1003,
 					"message": "认证令牌解析失败",
 				})
 			}
@@ -79,7 +79,7 @@ func AdminMiddleware() echo.MiddlewareFunc {
 			role, ok := c.Get("role").(string)
 			if !ok || role != "admin" {
 				return c.JSON(http.StatusForbidden, map[string]interface{}{
-					"code":    1003,
+					"code":    1021,
 					"message": "权限不足，需要管理员权限",
 				})
 			}

@@ -35,6 +35,15 @@ func Error(c echo.Context, statusCode int, message string) error {
 	})
 }
 
+// ErrorWithCode 带自定义错误码的错误响应
+func ErrorWithCode(c echo.Context, statusCode int, errCode int, message string) error {
+	return c.JSON(statusCode, Response{
+		Code:      errCode,
+		Message:   message,
+		Timestamp: currentTimestamp(),
+	})
+}
+
 // 分页响应
 type PaginatedResponse struct {
 	Items    interface{} `json:"items"`

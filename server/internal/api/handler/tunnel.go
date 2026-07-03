@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -60,7 +59,7 @@ func (h *TunnelHandler) List(c echo.Context) error {
 
 	tunnels, total, err := h.TunnelQueries.List(c.Request().Context(), userID, offset, pageSize)
 	if err != nil {
-		return response.Error(c, http.StatusInternalServerError, "查询隧道失败")
+		return response.ErrorWithCode(c, http.StatusInternalServerError, 5091, "系统出现未知错误，请刷新页面重试或联系管理员")
 	}
 
 	return response.PaginatedSuccess(c, tunnels, total, page, pageSize)
@@ -72,7 +71,7 @@ func (h *TunnelHandler) Create(c echo.Context) error {
 
 	var req CreateTunnelRequest
 	if err := c.Bind(&req); err != nil {
-		return response.Error(c, http.StatusBadRequest, "请求参数错误")
+		return response.ErrorWithCode(c, http.StatusBadRequest, 5001, "请求参数错误")
 	}
 
 	ctx := c.Request().Context()
@@ -83,7 +82,7 @@ func (h *TunnelHandler) Create(c echo.Context) error {
 		// 获取用户第一个设备
 		devices, _, err := h.DeviceQueries.List(ctx, userID, 0, 1)
 		if err != nil || len(devices) == 0 {
-			return response.Error(c, http.StatusBadRequest, "请先注册设备")
+			return response.ErrorWithCode(c, http.StatusBadRequest, 5082, "请先注册设备")
 		}
 		deviceID = devices[0].ID
 	}
@@ -91,16 +90,16 @@ func (h *TunnelHandler) Create(c echo.Context) error {
 	// 检查用户隧道数量限制
 	user, err := h.UserQueries.GetByID(ctx, userID)
 	if err != nil {
-		return response.Error(c, http.StatusUnauthorized, "用户不存在")
+		return response.ErrorWithCode(c, http.StatusUnauthorized, 5011, "用户不存在")
 	}
 
 	count, err := h.TunnelQueries.CountByUser(ctx, userID)
 	if err != nil {
-		return response.Error(c, http.StatusInternalServerError, "查询隧道数量失败")
+		return response.ErrorWithCode(c, http.StatusInternalServerError, 5091, "系统出现未知错误，请刷新页面重试或联系管理员")
 	}
 
 	if count >= user.MaxTunnels {
-		return response.Error(c, http.StatusForbidden, 
+		return response.ErrorWithCode(c, http.StatusForbidden, 5081, 
 			"已达隧道数量上限（最多 "+strconv.Itoa(user.MaxTunnels)+" 个）")
 	}
 
@@ -111,7 +110,7 @@ func (h *TunnelHandler) Create(c echo.Context) error {
 			h.Config.Security.AllowedPortsRange[0], 
 			h.Config.Security.AllowedPortsRange[1])
 		if err != nil {
-			return response.Error(c, http.StatusServiceUnavailable, "没有可用端口")
+			return response.ErrorWithCode(c, http.StatusServiceUnavailable, 5071, "没有可用端口")
 		}
 		remotePort = port
 	}
@@ -137,7 +136,7 @@ func (h *TunnelHandler) Create(c echo.Context) error {
 
 	if err := h.TunnelQueries.Create(ctx, tunnel); err != nil {
 		log.Printf("创建隧道失败: %v", err)
-		return response.Error(c, http.StatusInternalServerError, fmt.Sprintf("创建隧道失败: %v", err))
+		return response.ErrorWithCode(c, http.StatusInternalServerError, 5092, "系统出现未知错误，请刷新页面重试或联系管理员")
 	}
 
 	// 分配端口记录
@@ -155,11 +154,11 @@ func (h *TunnelHandler) Get(c echo.Context) error {
 
 	tunnel, err := h.TunnelQueries.GetByID(c.Request().Context(), tunnelID)
 	if err != nil {
-		return response.Error(c, http.StatusNotFound, "隧道不存在")
+		return response.ErrorWithCode(c, http.StatusNotFound, 5031, "隧道不存在")
 	}
 
 	if tunnel.UserID != userID {
-		return response.Error(c, http.StatusForbidden, "无权访问此隧道")
+		return response.ErrorWithCode(c, http.StatusForbidden, 5021, "当前用户权限不足")
 	}
 
 	return response.Success(c, http.StatusOK, tunnel)
@@ -174,16 +173,16 @@ func (h *TunnelHandler) Update(c echo.Context) error {
 
 	tunnel, err := h.TunnelQueries.GetByID(ctx, tunnelID)
 	if err != nil {
-		return response.Error(c, http.StatusNotFound, "隧道不存在")
+		return response.ErrorWithCode(c, http.StatusNotFound, 5031, "隧道不存在")
 	}
 
 	if tunnel.UserID != userID {
-		return response.Error(c, http.StatusForbidden, "无权修改此隧道")
+		return response.ErrorWithCode(c, http.StatusForbidden, 5022, "当前用户权限不足")
 	}
 
 	var req CreateTunnelRequest
 	if err := c.Bind(&req); err != nil {
-		return response.Error(c, http.StatusBadRequest, "请求参数错误")
+		return response.ErrorWithCode(c, http.StatusBadRequest, 5001, "请求参数错误")
 	}
 
 	var domain *string
@@ -200,7 +199,7 @@ func (h *TunnelHandler) Update(c echo.Context) error {
 	tunnel.TrafficLimit = req.TrafficLimit
 
 	if err := h.TunnelQueries.Update(ctx, tunnel); err != nil {
-		return response.Error(c, http.StatusInternalServerError, "更新隧道失败")
+		return response.ErrorWithCode(c, http.StatusInternalServerError, 5093, "系统出现未知错误，请刷新页面重试或联系管理员")
 	}
 
 	return response.Success(c, http.StatusOK, tunnel)
@@ -215,18 +214,18 @@ func (h *TunnelHandler) Delete(c echo.Context) error {
 
 	tunnel, err := h.TunnelQueries.GetByID(ctx, tunnelID)
 	if err != nil {
-		return response.Error(c, http.StatusNotFound, "隧道不存在")
+		return response.ErrorWithCode(c, http.StatusNotFound, 5031, "隧道不存在")
 	}
 
 	if tunnel.UserID != userID {
-		return response.Error(c, http.StatusForbidden, "无权删除此隧道")
+		return response.ErrorWithCode(c, http.StatusForbidden, 5023, "当前用户权限不足")
 	}
 
 	// 释放端口
 	h.TunnelQueries.ReleasePort(ctx, tunnel.RemotePort)
 
 	if err := h.TunnelQueries.Delete(ctx, tunnelID); err != nil {
-		return response.Error(c, http.StatusInternalServerError, "删除隧道失败")
+		return response.ErrorWithCode(c, http.StatusInternalServerError, 5094, "系统出现未知错误，请刷新页面重试或联系管理员")
 	}
 
 	return response.Success(c, http.StatusOK, nil)
@@ -241,15 +240,15 @@ func (h *TunnelHandler) Start(c echo.Context) error {
 
 	tunnel, err := h.TunnelQueries.GetByID(ctx, tunnelID)
 	if err != nil {
-		return response.Error(c, http.StatusNotFound, "隧道不存在")
+		return response.ErrorWithCode(c, http.StatusNotFound, 5031, "隧道不存在")
 	}
 
 	if tunnel.UserID != userID {
-		return response.Error(c, http.StatusForbidden, "无权操作此隧道")
+		return response.ErrorWithCode(c, http.StatusForbidden, 5024, "当前用户权限不足")
 	}
 
 	if err := h.TunnelQueries.UpdateStatus(ctx, tunnelID, "active", ""); err != nil {
-		return response.Error(c, http.StatusInternalServerError, "启动隧道失败")
+		return response.ErrorWithCode(c, http.StatusInternalServerError, 5095, "系统出现未知错误，请刷新页面重试或联系管理员")
 	}
 
 	return response.Success(c, http.StatusOK, nil)
@@ -264,15 +263,15 @@ func (h *TunnelHandler) Stop(c echo.Context) error {
 
 	tunnel, err := h.TunnelQueries.GetByID(ctx, tunnelID)
 	if err != nil {
-		return response.Error(c, http.StatusNotFound, "隧道不存在")
+		return response.ErrorWithCode(c, http.StatusNotFound, 5031, "隧道不存在")
 	}
 
 	if tunnel.UserID != userID {
-		return response.Error(c, http.StatusForbidden, "无权操作此隧道")
+		return response.ErrorWithCode(c, http.StatusForbidden, 5024, "当前用户权限不足")
 	}
 
 	if err := h.TunnelQueries.UpdateStatus(ctx, tunnelID, "inactive", ""); err != nil {
-		return response.Error(c, http.StatusInternalServerError, "停止隧道失败")
+		return response.ErrorWithCode(c, http.StatusInternalServerError, 5096, "系统出现未知错误，请刷新页面重试或联系管理员")
 	}
 
 	return response.Success(c, http.StatusOK, nil)
@@ -285,11 +284,11 @@ func (h *TunnelHandler) GetStats(c echo.Context) error {
 
 	tunnel, err := h.TunnelQueries.GetByID(c.Request().Context(), tunnelID)
 	if err != nil {
-		return response.Error(c, http.StatusNotFound, "隧道不存在")
+		return response.ErrorWithCode(c, http.StatusNotFound, 5031, "隧道不存在")
 	}
 
 	if tunnel.UserID != userID {
-		return response.Error(c, http.StatusForbidden, "无权访问此隧道")
+		return response.ErrorWithCode(c, http.StatusForbidden, 5021, "当前用户权限不足")
 	}
 
 	stats := map[string]interface{}{

@@ -37,7 +37,7 @@ func (h *DeviceHandler) List(c echo.Context) error {
 
 	devices, total, err := h.DeviceQueries.List(c.Request().Context(), userID, offset, pageSize)
 	if err != nil {
-		return response.Error(c, http.StatusInternalServerError, "查询设备失败")
+		return response.ErrorWithCode(c, http.StatusInternalServerError, 4091, "系统出现未知错误，请刷新页面重试或联系管理员")
 	}
 
 	return response.PaginatedSuccess(c, devices, total, page, pageSize)
@@ -50,11 +50,11 @@ func (h *DeviceHandler) Get(c echo.Context) error {
 
 	device, err := h.DeviceQueries.GetByID(c.Request().Context(), deviceID)
 	if err != nil {
-		return response.Error(c, http.StatusNotFound, "设备不存在")
+		return response.ErrorWithCode(c, http.StatusNotFound, 4031, "设备不存在")
 	}
 
 	if device.UserID != userID {
-		return response.Error(c, http.StatusForbidden, "无权访问此设备")
+		return response.ErrorWithCode(c, http.StatusForbidden, 4021, "当前用户权限不足")
 	}
 
 	return response.Success(c, http.StatusOK, device)
@@ -70,18 +70,18 @@ func (h *DeviceHandler) Update(c echo.Context) error {
 	}
 
 	if err := c.Bind(&req); err != nil {
-		return response.Error(c, http.StatusBadRequest, "请求参数错误")
+		return response.ErrorWithCode(c, http.StatusBadRequest, 4001, "请求参数错误")
 	}
 
 	ctx := c.Request().Context()
 
 	device, err := h.DeviceQueries.GetByID(ctx, deviceID)
 	if err != nil {
-		return response.Error(c, http.StatusNotFound, "设备不存在")
+		return response.ErrorWithCode(c, http.StatusNotFound, 4031, "设备不存在")
 	}
 
 	if device.UserID != userID {
-		return response.Error(c, http.StatusForbidden, "无权修改此设备")
+		return response.ErrorWithCode(c, http.StatusForbidden, 4022, "当前用户权限不足")
 	}
 
 	if req.DeviceName != "" {
@@ -91,7 +91,7 @@ func (h *DeviceHandler) Update(c echo.Context) error {
 			"UPDATE devices SET device_name = $1, updated_at = NOW() WHERE id = $2", 
 			device.DeviceName, device.ID)
 		if err != nil {
-			return response.Error(c, http.StatusInternalServerError, "更新设备失败")
+			return response.ErrorWithCode(c, http.StatusInternalServerError, 4092, "系统出现未知错误，请刷新页面重试或联系管理员")
 		}
 	}
 
@@ -107,15 +107,15 @@ func (h *DeviceHandler) Delete(c echo.Context) error {
 
 	device, err := h.DeviceQueries.GetByID(ctx, deviceID)
 	if err != nil {
-		return response.Error(c, http.StatusNotFound, "设备不存在")
+		return response.ErrorWithCode(c, http.StatusNotFound, 4031, "设备不存在")
 	}
 
 	if device.UserID != userID {
-		return response.Error(c, http.StatusForbidden, "无权删除此设备")
+		return response.ErrorWithCode(c, http.StatusForbidden, 4023, "当前用户权限不足")
 	}
 
 	if err := h.DeviceQueries.Delete(ctx, deviceID); err != nil {
-		return response.Error(c, http.StatusInternalServerError, "删除设备失败")
+		return response.ErrorWithCode(c, http.StatusInternalServerError, 4093, "系统出现未知错误，请刷新页面重试或联系管理员")
 	}
 
 	return response.Success(c, http.StatusOK, nil)

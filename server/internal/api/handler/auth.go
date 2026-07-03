@@ -62,18 +62,18 @@ type AuthResponse struct {
 func (h *AuthHandler) Register(c echo.Context) error {
 	var req RegisterRequest
 	if err := c.Bind(&req); err != nil {
-		return response.Error(c, http.StatusBadRequest, "请求参数错误")
+		return response.ErrorWithCode(c, http.StatusBadRequest, 2001, "请求参数错误")
 	}
 
 	// 验证密码强度
 	if err := validatePassword(req.Password); err != nil {
-		return response.Error(c, http.StatusBadRequest, err.Error())
+		return response.ErrorWithCode(c, http.StatusBadRequest, 2002, err.Error())
 	}
 
 	// 生成密码哈希
 	passwordHash, salt, err := auth.HashPassword(req.Password)
 	if err != nil {
-		return response.Error(c, http.StatusInternalServerError, "生成密码哈希失败")
+		return response.ErrorWithCode(c, http.StatusInternalServerError, 2091, "系统出现未知错误，请刷新页面重试或联系管理员")
 	}
 
 	// 创建用户
@@ -90,7 +90,7 @@ func (h *AuthHandler) Register(c echo.Context) error {
 
 	ctx := c.Request().Context()
 	if err := h.UserQueries.Create(ctx, user); err != nil {
-		return response.Error(c, http.StatusConflict, "用户名或邮箱已存在")
+		return response.ErrorWithCode(c, http.StatusConflict, 2041, "用户名或邮箱已存在")
 	}
 
 	// 创建设备
@@ -103,7 +103,7 @@ func (h *AuthHandler) Register(c echo.Context) error {
 	}
 
 	if err := h.DeviceQueries.Create(ctx, device); err != nil {
-		return response.Error(c, http.StatusInternalServerError, "创建设备失败")
+		return response.ErrorWithCode(c, http.StatusInternalServerError, 2092, "系统出现未知错误，请刷新页面重试或联系管理员")
 	}
 
 	// 生成令牌
@@ -114,7 +114,7 @@ func (h *AuthHandler) Register(c echo.Context) error {
 		h.Config.JWT.RefreshExpiry,
 	)
 	if err != nil {
-		return response.Error(c, http.StatusInternalServerError, "生成令牌失败")
+		return response.ErrorWithCode(c, http.StatusInternalServerError, 2093, "系统出现未知错误，请刷新页面重试或联系管理员")
 	}
 
 	return response.Success(c, http.StatusCreated, &AuthResponse{
@@ -128,7 +128,7 @@ func (h *AuthHandler) Register(c echo.Context) error {
 func (h *AuthHandler) Login(c echo.Context) error {
 	var req LoginRequest
 	if err := c.Bind(&req); err != nil {
-		return response.Error(c, http.StatusBadRequest, "请求参数错误")
+		return response.ErrorWithCode(c, http.StatusBadRequest, 2001, "请求参数错误")
 	}
 
 	ctx := c.Request().Context()
@@ -136,15 +136,15 @@ func (h *AuthHandler) Login(c echo.Context) error {
 
 	// 检查是否被锁定
 	if locked, remain := h.Limiter.IsLocked(identifier); locked {
-		return response.Error(c, http.StatusTooManyRequests,
-			fmt.Sprintf("您的输入错误次数过多，请在 %.0f 分钟后重试", remain.Minutes()))
+		return response.ErrorWithCode(c, http.StatusTooManyRequests, 2051,
+			fmt.Sprintf("登录尝试过多，请在 %.0f 分钟后重试", remain.Minutes()))
 	}
 
 	// 获取用户
 	user, err := h.UserQueries.GetByEmail(ctx, req.Email)
 	if err != nil {
 		h.Limiter.RecordFailure(identifier)
-		return response.Error(c, http.StatusUnauthorized, "您的账号或密码输入错误")
+		return response.ErrorWithCode(c, http.StatusUnauthorized, 2011, "您的账号或密码输入错误")
 	}
 
 	// 验证密码
@@ -154,10 +154,10 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		failCount := h.Limiter.GetFailCount(identifier)
 		remaining := h.Config.Security.LoginMaxAttempts - failCount
 		if remaining <= 0 {
-			return response.Error(c, http.StatusTooManyRequests,
-				fmt.Sprintf("您的输入错误次数过多，请在 %.0f 分钟后重试", h.Config.Security.LoginLockoutDuration.Minutes()))
+			return response.ErrorWithCode(c, http.StatusTooManyRequests, 2051,
+				fmt.Sprintf("登录尝试过多，请在 %.0f 分钟后重试", h.Config.Security.LoginLockoutDuration.Minutes()))
 		}
-		return response.Error(c, http.StatusUnauthorized, "您的账号或密码输入错误")
+		return response.ErrorWithCode(c, http.StatusUnauthorized, 2011, "您的账号或密码输入错误")
 	}
 
 	// 密码正确，清除失败记录
@@ -165,18 +165,18 @@ func (h *AuthHandler) Login(c echo.Context) error {
 
 	// 检查用户状态
 	if user.Status != "active" {
-		return response.Error(c, http.StatusForbidden, "账号已被禁用")
+		return response.ErrorWithCode(c, http.StatusForbidden, 2061, "当前账号已被禁用")
 	}
 
 	// 检查两步验证
 	if user.TwoFactorKey != nil && *user.TwoFactorKey != "" {
 		if req.TOTPCode == "" {
-			return response.Error(c, http.StatusUnauthorized, "需要两步验证")
+			return response.ErrorWithCode(c, http.StatusUnauthorized, 2012, "当前账号需要进行令牌安全认证")
 		}
 
 		totp := auth.NewTOTP(*user.TwoFactorKey, "YUNO Nexus", user.Email)
 		if !totp.VerifyCode(req.TOTPCode, 1) {
-			return response.Error(c, http.StatusUnauthorized, "两步验证代码错误")
+			return response.ErrorWithCode(c, http.StatusUnauthorized, 2013, "认证失败，您的令牌代码错误")
 		}
 	}
 
@@ -191,7 +191,7 @@ func (h *AuthHandler) Login(c echo.Context) error {
 			Status:      "active",
 		}
 		if createErr := h.DeviceQueries.Create(ctx, device); createErr != nil {
-			return response.Error(c, http.StatusInternalServerError, "创建设备失败")
+			return response.ErrorWithCode(c, http.StatusInternalServerError, 2092, "系统出现未知错误，请刷新页面重试或联系管理员")
 		}
 	} else {
 		now := time.Now()
@@ -207,7 +207,7 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		h.Config.JWT.RefreshExpiry,
 	)
 	if err != nil {
-		return response.Error(c, http.StatusInternalServerError, "生成令牌失败")
+		return response.ErrorWithCode(c, http.StatusInternalServerError, 2093, "系统出现未知错误，请刷新页面重试或联系管理员")
 	}
 
 	return response.Success(c, http.StatusOK, &AuthResponse{
@@ -224,13 +224,13 @@ func (h *AuthHandler) RefreshToken(c echo.Context) error {
 	}
 
 	if err := c.Bind(&req); err != nil {
-		return response.Error(c, http.StatusBadRequest, "请求参数错误")
+		return response.ErrorWithCode(c, http.StatusBadRequest, 2001, "请求参数错误")
 	}
 
 	// 验证刷新令牌
 	_, err := auth.ValidateToken(req.RefreshToken, h.Config.JWT.Secret)
 	if err != nil {
-		return response.Error(c, http.StatusUnauthorized, "无效的刷新令牌")
+		return response.ErrorWithCode(c, http.StatusUnauthorized, 2014, "刷新令牌无效或已过期")
 	}
 
 	// 生成新的访问令牌
@@ -240,7 +240,7 @@ func (h *AuthHandler) RefreshToken(c echo.Context) error {
 		h.Config.JWT.Expiry,
 	)
 	if err != nil {
-		return response.Error(c, http.StatusUnauthorized, "刷新令牌失败")
+		return response.ErrorWithCode(c, http.StatusUnauthorized, 2015, "刷新令牌失败，请重新登录")
 	}
 
 	return response.Success(c, http.StatusOK, map[string]string{
@@ -251,7 +251,7 @@ func (h *AuthHandler) RefreshToken(c echo.Context) error {
 // 验证密码强度
 func validatePassword(password string) error {
 	if len(password) < 8 {
-		return echo.NewHTTPError(http.StatusBadRequest, "密码长度至少8位")
+		return echo.NewHTTPError(http.StatusBadRequest, "您设置的密码过于简单，密码长度不得少于8位，且密码至少包含字母、数字、特殊符号中的两种")
 	}
 
 	var hasLetter, hasDigit, hasSpecial bool
