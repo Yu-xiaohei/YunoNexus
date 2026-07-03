@@ -1,8 +1,14 @@
-# YunoNexus 开发指南
+# YUNO Nexus 开发指南
+
+> 版本: 0.1.0  
+> 作者: by.Yu_xiaohei
 
 ## 项目概述
 
-YunoNexus 是一个轻量级、高安全性的内网穿透工具，支持 TCP/UDP/HTTP/HTTPS/WebSocket 协议转发。
+YUNO Nexus 是一个轻量级、高安全性的内网穿透工具，支持 TCP/UDP/HTTP/HTTPS/WebSocket 协议转发。
+
+**服务端**: YUNO Nexus Server  
+**客户端**: YUNO Nexus
 
 ## 当前进度
 

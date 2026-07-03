@@ -1,0 +1,27 @@
+{
+  "name": "YUNO Nexus",
+  "version": "0.1.0",
+  "version_name": "0.1.0",
+  "author": "by.Yu_xiaohei",
+  "description": "轻量级、高安全性的内网穿透工具",
+  "homepage": "https://github.com/Yu-xiaohei/YunoNexus",
+  "license": "MIT",
+  "build": {
+    "timestamp": "2026-07-03",
+    "commit": ""
+  },
+  "changelog": [
+    {
+      "version": "0.1.0",
+      "date": "2026-07-03",
+      "type": "initial",
+      "changes": [
+        "初始版本发布",
+        "项目结构搭建",
+        "服务端基础框架",
+        "数据库设计",
+        "Docker配置"
+      ]
+    }
+  ]
+}
