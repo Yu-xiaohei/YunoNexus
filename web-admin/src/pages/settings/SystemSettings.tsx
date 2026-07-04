@@ -1,17 +1,11 @@
-import { useState } from 'react'
-import { Card, Form, Input, Switch, Button, message, Tabs } from 'antd'
+import { Card, Form, Input, Switch, Button, message, Tabs, Alert } from 'antd'
 
 function SystemSettings() {
-  const [loading, setLoading] = useState(false)
-
   const handleSave = async () => {
-    setLoading(true)
     try {
       message.success('保存成功')
     } catch (error) {
       message.error('保存失败')
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -24,14 +18,11 @@ function SystemSettings() {
           <Form.Item label="系统名称">
             <Input defaultValue="YUNO Nexus" />
           </Form.Item>
-          <Form.Item label="默认最大隧道数">
-            <Input defaultValue="3" type="number" />
-          </Form.Item>
           <Form.Item label="会话超时(秒)">
             <Input defaultValue="7200" type="number" />
           </Form.Item>
           <Form.Item>
-            <Button type="primary" onClick={handleSave} loading={loading}>保存</Button>
+            <Button type="primary" onClick={handleSave}>保存</Button>
           </Form.Item>
         </Form>
       ),
@@ -51,9 +42,22 @@ function SystemSettings() {
             <Input defaultValue="5" type="number" />
           </Form.Item>
           <Form.Item>
-            <Button type="primary" onClick={handleSave} loading={loading}>保存</Button>
+            <Button type="primary" onClick={handleSave}>保存</Button>
           </Form.Item>
         </Form>
+      ),
+    },
+    {
+      key: 'user-defaults',
+      label: '用户默认设置',
+      children: (
+        <Alert 
+          message="提示" 
+          description="以下设置为新用户的默认值，管理员可以在用户管理中为每个用户单独调整。" 
+          type="info" 
+          showIcon 
+          style={{ marginBottom: 16 }}
+        />
       ),
     },
   ]

@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
-import { Table, Button, Tag, Space, Modal, Form, Input, Select, message, Popconfirm } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined, PlayCircleOutlined, PauseCircleOutlined } from '@ant-design/icons'
+import { Table, Button, Tag, Space, Modal, Form, Input, Select, message, Popconfirm, Descriptions } from 'antd'
+import { PlusOutlined, EditOutlined, DeleteOutlined, PlayCircleOutlined, PauseCircleOutlined, InfoCircleOutlined } from '@ant-design/icons'
 import { tunnelAPI } from '../../api'
 
 function TunnelList() {
   const [tunnels, setTunnels] = useState([])
   const [loading, setLoading] = useState(true)
   const [modalVisible, setModalVisible] = useState(false)
+  const [detailModalVisible, setDetailModalVisible] = useState(false)
   const [editingTunnel, setEditingTunnel] = useState<Record<string, unknown> | null>(null)
+  const [selectedTunnel, setSelectedTunnel] = useState<Record<string, unknown> | null>(null)
   const [form] = Form.useForm()
 
   const fetchTunnels = async () => {
@@ -36,6 +38,16 @@ function TunnelList() {
     setEditingTunnel(record)
     form.setFieldsValue(record)
     setModalVisible(true)
+  }
+
+  const handleViewDetail = async (record: Record<string, unknown>) => {
+    try {
+      const res = await tunnelAPI.stats(record.id as string)
+      setSelectedTunnel({ ...record, stats: res.data })
+      setDetailModalVisible(true)
+    } catch (error) {
+      message.error('获取详情失败')
+    }
   }
 
   const handleDelete = async (id: string) => {
@@ -94,13 +106,20 @@ function TunnelList() {
       title: '状态', 
       dataIndex: 'status', 
       key: 'status',
-      render: (text: string) => <Tag color={text === 'active' ? 'green' : 'default'}>{text === 'active' ? '在线' : '离线'}</Tag>
+      render: (text: string) => {
+        if (text === 'active') {
+          return <Tag color="green">已启动</Tag>
+        } else {
+          return <Tag color="default">离线</Tag>
+        }
+      }
     },
     {
       title: '操作',
       key: 'action',
       render: (_: unknown, record: Record<string, unknown>) => (
         <Space>
+          <Button type="link" icon={<InfoCircleOutlined />} onClick={() => handleViewDetail(record)}>详情</Button>
           {record.status === 'active' ? (
             <Button type="link" icon={<PauseCircleOutlined />} onClick={() => handleStop(record.id as string)}>停止</Button>
           ) : (
@@ -116,7 +135,7 @@ function TunnelList() {
   ]
 
   return (
-    <div>
+    <>
       <div style={{ marginBottom: 16 }}>
         <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>创建隧道</Button>
       </div>
@@ -155,7 +174,27 @@ function TunnelList() {
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+
+      <Modal
+        title="隧道详情"
+        open={detailModalVisible}
+        onCancel={() => setDetailModalVisible(false)}
+        footer={null}
+      >
+        {selectedTunnel && (
+          <Descriptions column={1} bordered>
+            <Descriptions.Item label="名称">{selectedTunnel.name as string}</Descriptions.Item>
+            <Descriptions.Item label="协议">{selectedTunnel.protocol as string}</Descriptions.Item>
+            <Descriptions.Item label="本地地址">{selectedTunnel.local_host as string}:{selectedTunnel.local_port as number}</Descriptions.Item>
+            <Descriptions.Item label="远程端口">{selectedTunnel.remote_port as number}</Descriptions.Item>
+            <Descriptions.Item label="状态">{selectedTunnel.status === 'active' ? '在线' : '离线'}</Descriptions.Item>
+            <Descriptions.Item label="活跃连接数">{String((selectedTunnel.stats as Record<string, unknown>)?.active_connections || 0)}</Descriptions.Item>
+            <Descriptions.Item label="已发送流量">{String((selectedTunnel.stats as Record<string, unknown>)?.bytes_sent || 0)} bytes</Descriptions.Item>
+            <Descriptions.Item label="已接收流量">{String((selectedTunnel.stats as Record<string, unknown>)?.bytes_recv || 0)} bytes</Descriptions.Item>
+          </Descriptions>
+        )}
+      </Modal>
+    </>
   )
 }
 

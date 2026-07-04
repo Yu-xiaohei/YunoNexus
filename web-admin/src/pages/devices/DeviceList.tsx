@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react'
-import { Table, Tag, Button, Space, Popconfirm, message } from 'antd'
+import { Table, Tag, Button, Space, Popconfirm, message, Modal, Form, Input } from 'antd'
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons'
 import { deviceAPI } from '../../api'
 
 function DeviceList() {
   const [devices, setDevices] = useState([])
   const [loading, setLoading] = useState(true)
+  const [editModalVisible, setEditModalVisible] = useState(false)
+  const [editingDevice, setEditingDevice] = useState<Record<string, unknown> | null>(null)
+  const [form] = Form.useForm()
 
   const fetchDevices = async () => {
     setLoading(true)
@@ -22,6 +25,24 @@ function DeviceList() {
   useEffect(() => {
     fetchDevices()
   }, [])
+
+  const handleEdit = (record: Record<string, unknown>) => {
+    setEditingDevice(record)
+    form.setFieldsValue({ device_name: record.device_name })
+    setEditModalVisible(true)
+  }
+
+  const handleEditOk = async () => {
+    try {
+      const values = await form.validateFields()
+      await deviceAPI.update(editingDevice!.id as string, values)
+      message.success('更新成功')
+      setEditModalVisible(false)
+      fetchDevices()
+    } catch (error) {
+      message.error('更新失败')
+    }
+  }
 
   const handleDelete = async (id: string) => {
     try {
@@ -49,7 +70,7 @@ function DeviceList() {
       key: 'action',
       render: (_: unknown, record: Record<string, unknown>) => (
         <Space>
-          <Button type="link" icon={<EditOutlined />}>编辑</Button>
+          <Button type="link" icon={<EditOutlined />} onClick={() => handleEdit(record)}>编辑</Button>
           <Popconfirm title="确定吊销此设备?" onConfirm={() => handleDelete(record.id as string)}>
             <Button type="link" danger icon={<DeleteOutlined />}>吊销</Button>
           </Popconfirm>
@@ -59,7 +80,22 @@ function DeviceList() {
   ]
 
   return (
-    <Table columns={columns} dataSource={devices} rowKey="id" loading={loading} />
+    <>
+      <Table columns={columns} dataSource={devices} rowKey="id" loading={loading} />
+
+      <Modal
+        title="编辑设备"
+        open={editModalVisible}
+        onOk={handleEditOk}
+        onCancel={() => setEditModalVisible(false)}
+      >
+        <Form form={form} layout="vertical">
+          <Form.Item name="device_name" label="设备名称">
+            <Input />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </>
   )
 }
 
