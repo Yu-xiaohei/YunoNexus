@@ -1,4 +1,6 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Spin } from 'antd'
 import MainLayout from './components/layout/MainLayout'
 import Login from './pages/Login'
 import Forbidden from './pages/Forbidden'
@@ -12,8 +14,20 @@ import { useAuthStore } from './store/authStore'
 
 // 受保护的路由组件
 function ProtectedRoute({ children, requireAdmin = false }: { children: React.ReactNode; requireAdmin?: boolean }) {
-  const { token, user } = useAuthStore()
+  const { token, user, loadUser } = useAuthStore()
   const location = useLocation()
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (token && !user) {
+      loadUser()
+    }
+    setLoading(false)
+  }, [token, user, loadUser])
+
+  if (loading) {
+    return <Spin size="large" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }} />
+  }
 
   // 未登录，跳转到登录页
   if (!token) {

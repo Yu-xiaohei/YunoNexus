@@ -46,6 +46,8 @@ export const adminAPI = {
     api.get('/admin/users', { params }),
   updateUser: (id: string, data: Record<string, unknown>) =>
     api.put(`/admin/users/${id}`, data),
+  deleteUser: (id: string) =>
+    api.delete(`/admin/users/${id}`),
   systemStats: () => api.get('/admin/system/stats'),
   auditLogs: (params?: { page?: number; page_size?: number }) =>
     api.get('/admin/audit-logs', { params }),
