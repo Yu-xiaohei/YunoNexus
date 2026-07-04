@@ -1,0 +1,162 @@
+import { useEffect, useState } from 'react'
+import { Table, Button, Tag, Space, Modal, Form, Input, Select, message, Popconfirm } from 'antd'
+import { PlusOutlined, EditOutlined, DeleteOutlined, PlayCircleOutlined, PauseCircleOutlined } from '@ant-design/icons'
+import { tunnelAPI } from '../../api'
+
+function TunnelList() {
+  const [tunnels, setTunnels] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [modalVisible, setModalVisible] = useState(false)
+  const [editingTunnel, setEditingTunnel] = useState<Record<string, unknown> | null>(null)
+  const [form] = Form.useForm()
+
+  const fetchTunnels = async () => {
+    setLoading(true)
+    try {
+      const res = await tunnelAPI.list({ page: 1, page_size: 50 })
+      setTunnels(res.data.items || [])
+    } catch (error) {
+      console.error('获取隧道列表失败:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchTunnels()
+  }, [])
+
+  const handleCreate = () => {
+    setEditingTunnel(null)
+    form.resetFields()
+    setModalVisible(true)
+  }
+
+  const handleEdit = (record: Record<string, unknown>) => {
+    setEditingTunnel(record)
+    form.setFieldsValue(record)
+    setModalVisible(true)
+  }
+
+  const handleDelete = async (id: string) => {
+    try {
+      await tunnelAPI.delete(id)
+      message.success('删除成功')
+      fetchTunnels()
+    } catch (error) {
+      message.error('删除失败')
+    }
+  }
+
+  const handleStart = async (id: string) => {
+    try {
+      await tunnelAPI.start(id)
+      message.success('启动成功')
+      fetchTunnels()
+    } catch (error) {
+      message.error('启动失败')
+    }
+  }
+
+  const handleStop = async (id: string) => {
+    try {
+      await tunnelAPI.stop(id)
+      message.success('停止成功')
+      fetchTunnels()
+    } catch (error) {
+      message.error('停止失败')
+    }
+  }
+
+  const handleModalOk = async () => {
+    try {
+      const values = await form.validateFields()
+      if (editingTunnel) {
+        await tunnelAPI.update(editingTunnel.id as string, values)
+        message.success('更新成功')
+      } else {
+        await tunnelAPI.create(values)
+        message.success('创建成功')
+      }
+      setModalVisible(false)
+      fetchTunnels()
+    } catch (error) {
+      message.error('操作失败')
+    }
+  }
+
+  const columns = [
+    { title: '名称', dataIndex: 'name', key: 'name' },
+    { title: '协议', dataIndex: 'protocol', key: 'protocol', render: (text: string) => <Tag color="blue">{text.toUpperCase()}</Tag> },
+    { title: '本地地址', key: 'local', render: (_: unknown, record: Record<string, unknown>) => `${record.local_host}:${record.local_port}` },
+    { title: '远程端口', dataIndex: 'remote_port', key: 'remote_port' },
+    { 
+      title: '状态', 
+      dataIndex: 'status', 
+      key: 'status',
+      render: (text: string) => <Tag color={text === 'active' ? 'green' : 'default'}>{text === 'active' ? '在线' : '离线'}</Tag>
+    },
+    {
+      title: '操作',
+      key: 'action',
+      render: (_: unknown, record: Record<string, unknown>) => (
+        <Space>
+          {record.status === 'active' ? (
+            <Button type="link" icon={<PauseCircleOutlined />} onClick={() => handleStop(record.id as string)}>停止</Button>
+          ) : (
+            <Button type="link" icon={<PlayCircleOutlined />} onClick={() => handleStart(record.id as string)}>启动</Button>
+          )}
+          <Button type="link" icon={<EditOutlined />} onClick={() => handleEdit(record)}>编辑</Button>
+          <Popconfirm title="确定删除?" onConfirm={() => handleDelete(record.id as string)}>
+            <Button type="link" danger icon={<DeleteOutlined />}>删除</Button>
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ]
+
+  return (
+    <div>
+      <div style={{ marginBottom: 16 }}>
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>创建隧道</Button>
+      </div>
+      
+      <Table columns={columns} dataSource={tunnels} rowKey="id" loading={loading} />
+
+      <Modal
+        title={editingTunnel ? '编辑隧道' : '创建隧道'}
+        open={modalVisible}
+        onOk={handleModalOk}
+        onCancel={() => setModalVisible(false)}
+      >
+        <Form form={form} layout="vertical">
+          <Form.Item name="name" label="名称" rules={[{ required: true }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="protocol" label="协议" rules={[{ required: true }]}>
+            <Select>
+              <Select.Option value="tcp">TCP</Select.Option>
+              <Select.Option value="udp">UDP</Select.Option>
+              <Select.Option value="http">HTTP</Select.Option>
+              <Select.Option value="https">HTTPS</Select.Option>
+            </Select>
+          </Form.Item>
+          <Form.Item name="local_host" label="本地地址" rules={[{ required: true }]}>
+            <Input defaultValue="127.0.0.1" />
+          </Form.Item>
+          <Form.Item name="local_port" label="本地端口" rules={[{ required: true }]}>
+            <Input type="number" />
+          </Form.Item>
+          <Form.Item name="remote_port" label="远程端口">
+            <Input type="number" placeholder="留空自动分配" />
+          </Form.Item>
+          <Form.Item name="domain" label="域名">
+            <Input placeholder="HTTP/HTTPS协议需要" />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </div>
+  )
+}
+
+export default TunnelList
