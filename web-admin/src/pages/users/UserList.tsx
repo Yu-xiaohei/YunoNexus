@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
-import { Table, Tag, Select, message, Modal, Form, Input, Space, Button, Popconfirm } from 'antd'
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons'
+import { Table, Tag, Select, message, Modal, Form, Input, Space, Button, Popconfirm, Descriptions } from 'antd'
+import { EditOutlined, DeleteOutlined, InfoCircleOutlined } from '@ant-design/icons'
 import { adminAPI } from '../../api'
 
 function UserList() {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [editModalVisible, setEditModalVisible] = useState(false)
+  const [detailModalVisible, setDetailModalVisible] = useState(false)
   const [editingUser, setEditingUser] = useState<Record<string, unknown> | null>(null)
+  const [selectedUser, setSelectedUser] = useState<Record<string, unknown> | null>(null)
   const [form] = Form.useForm()
 
   const fetchUsers = async () => {
@@ -38,6 +40,11 @@ function UserList() {
     setEditModalVisible(true)
   }
 
+  const handleViewDetail = (record: Record<string, unknown>) => {
+    setSelectedUser(record)
+    setDetailModalVisible(true)
+  }
+
   const handleEditOk = async () => {
     try {
       const values = await form.validateFields()
@@ -52,8 +59,10 @@ function UserList() {
 
   const handleDelete = async (userId: string) => {
     try {
+      // 调用后端删除用户接口（如果有的话）
+      // 目前先用封禁状态代替
       await adminAPI.updateUser(userId, { status: 'banned' })
-      message.success('已封禁用户')
+      message.success('用户已封禁')
       fetchUsers()
     } catch (error) {
       message.error('操作失败')
@@ -97,6 +106,7 @@ function UserList() {
       key: 'action',
       render: (_: unknown, record: Record<string, unknown>) => (
         <Space>
+          <Button type="link" icon={<InfoCircleOutlined />} onClick={() => handleViewDetail(record)}>详情</Button>
           <Button type="link" icon={<EditOutlined />} onClick={() => handleEdit(record)}>编辑</Button>
           <Popconfirm title="确定封禁此用户?" onConfirm={() => handleDelete(record.id as string)}>
             <Button type="link" danger icon={<DeleteOutlined />}>封禁</Button>
@@ -140,6 +150,25 @@ function UserList() {
             <Input type="number" />
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        title="用户详情"
+        open={detailModalVisible}
+        onCancel={() => setDetailModalVisible(false)}
+        footer={null}
+      >
+        {selectedUser && (
+          <Descriptions column={1} bordered>
+            <Descriptions.Item label="用户ID">{selectedUser.id as string}</Descriptions.Item>
+            <Descriptions.Item label="用户名">{selectedUser.username as string}</Descriptions.Item>
+            <Descriptions.Item label="邮箱">{selectedUser.email as string}</Descriptions.Item>
+            <Descriptions.Item label="角色">{(selectedUser.role as string) === 'admin' ? '管理员' : '普通用户'}</Descriptions.Item>
+            <Descriptions.Item label="状态">{getStatusTag(selectedUser.status as string, selectedUser.last_seen_at as string)}</Descriptions.Item>
+            <Descriptions.Item label="最大隧道数">{String(selectedUser.max_tunnels)}</Descriptions.Item>
+            <Descriptions.Item label="创建时间">{new Date(selectedUser.created_at as string).toLocaleString()}</Descriptions.Item>
+          </Descriptions>
+        )}
       </Modal>
     </>
   )

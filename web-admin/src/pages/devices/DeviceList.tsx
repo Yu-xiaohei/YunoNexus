@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
-import { Table, Tag, Button, Space, Popconfirm, message, Modal, Form, Input } from 'antd'
-import { DeleteOutlined, EditOutlined } from '@ant-design/icons'
+import { Table, Tag, Button, Space, Popconfirm, message, Modal, Form, Input, Descriptions } from 'antd'
+import { DeleteOutlined, EditOutlined, InfoCircleOutlined } from '@ant-design/icons'
 import { deviceAPI } from '../../api'
 
 function DeviceList() {
   const [devices, setDevices] = useState([])
   const [loading, setLoading] = useState(true)
   const [editModalVisible, setEditModalVisible] = useState(false)
+  const [detailModalVisible, setDetailModalVisible] = useState(false)
   const [editingDevice, setEditingDevice] = useState<Record<string, unknown> | null>(null)
+  const [selectedDevice, setSelectedDevice] = useState<Record<string, unknown> | null>(null)
   const [form] = Form.useForm()
 
   const fetchDevices = async () => {
@@ -30,6 +32,11 @@ function DeviceList() {
     setEditingDevice(record)
     form.setFieldsValue({ device_name: record.device_name })
     setEditModalVisible(true)
+  }
+
+  const handleViewDetail = (record: Record<string, unknown>) => {
+    setSelectedDevice(record)
+    setDetailModalVisible(true)
   }
 
   const handleEditOk = async () => {
@@ -70,6 +77,7 @@ function DeviceList() {
       key: 'action',
       render: (_: unknown, record: Record<string, unknown>) => (
         <Space>
+          <Button type="link" icon={<InfoCircleOutlined />} onClick={() => handleViewDetail(record)}>详情</Button>
           <Button type="link" icon={<EditOutlined />} onClick={() => handleEdit(record)}>编辑</Button>
           <Popconfirm title="确定吊销此设备?" onConfirm={() => handleDelete(record.id as string)}>
             <Button type="link" danger icon={<DeleteOutlined />}>吊销</Button>
@@ -94,6 +102,25 @@ function DeviceList() {
             <Input />
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        title="设备详情"
+        open={detailModalVisible}
+        onCancel={() => setDetailModalVisible(false)}
+        footer={null}
+      >
+        {selectedDevice && (
+          <Descriptions column={1} bordered>
+            <Descriptions.Item label="设备ID">{selectedDevice.id as string}</Descriptions.Item>
+            <Descriptions.Item label="设备名称">{selectedDevice.device_name as string}</Descriptions.Item>
+            <Descriptions.Item label="设备类型">{selectedDevice.device_type as string}</Descriptions.Item>
+            <Descriptions.Item label="指纹">{selectedDevice.fingerprint as string}</Descriptions.Item>
+            <Descriptions.Item label="状态">{(selectedDevice.status as string) === 'active' ? '活跃' : '已吊销'}</Descriptions.Item>
+            <Descriptions.Item label="最后在线">{selectedDevice.last_seen_at ? new Date(selectedDevice.last_seen_at as string).toLocaleString() : '从未在线'}</Descriptions.Item>
+            <Descriptions.Item label="创建时间">{new Date(selectedDevice.created_at as string).toLocaleString()}</Descriptions.Item>
+          </Descriptions>
+        )}
       </Modal>
     </>
   )
