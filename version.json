@@ -1,7 +1,7 @@
 {
   "name": "YUNO Nexus",
-  "version": "0.2.0",
-  "version_name": "0.2.0",
+  "version": "0.2.7",
+  "version_name": "0.2.7",
   "author": "Yu_xiaohei",
   "description": "于的小窝 - 专属于你的轻量级内网穿透小工具",
   "homepage": "https://github.com/Yu-xiaohei/YunoNexus",
@@ -11,6 +11,19 @@
     "commit": ""
   },
   "changelog": [
+    {
+      "version": "0.2.7",
+      "date": "2026-07-04",
+      "type": "feature",
+      "changes": [
+        "Web管理界面：统一UI布局、筛选工具、创建按钮位置",
+        "权限控制：403页面、侧边栏隐藏、路由保护",
+        "用户管理：创建用户、修改密码、删除用户",
+        "系统设置：端口策略、密码策略、保存功能修复",
+        "记住密码：localStorage持久化",
+        "响应式布局：手机端自适应"
+      ]
+    },
     {
       "version": "0.2.0",
       "date": "2026-07-04",

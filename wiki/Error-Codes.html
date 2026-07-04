@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>错误码 - YUNO Nexus</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 20px; }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-bottom: 20px; }
+        h2 { color: #34495e; margin-top: 30px; }
+        h3 { color: #7f8c8d; }
+        a { color: #3498db; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-family: monospace; }
+        pre { background: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background: #f4f4f4; }
+        .nav { background: #2c3e50; padding: 15px; border-radius: 5px; margin-bottom: 30px; }
+        .nav a { color: #ecf0f1; margin-right: 20px; }
+        .nav a:hover { color: #3498db; }
+        .back { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="Home.html">首页</a>
+        <a href="Architecture.html">架构设计</a>
+        <a href="API-Reference.html">API文档</a>
+        <a href="Error-Codes.html">错误码</a>
+        <a href="CHANGELOG.html">更新日志</a>
+    </div>
+
+    <div class="back"><a href="Home.html">← 返回首页</a></div>
+
+    <h1>错误码体系</h1>
+
+    <h2>错误码格式：<code>XYYY</code></h2>
+    <table>
+        <tr><th>位数</th><th>含义</th><th>取值范围</th></tr>
+        <tr><td>第1位</td><td>服务/模块</td><td>1-9</td></tr>
+        <tr><td>第2位</td><td>错误类型</td><td>0-9</td></tr>
+        <tr><td>第3-4位</td><td>具体编号</td><td>01-99</td></tr>
+    </table>
+
+    <h2>模块说明</h2>
+    <table>
+        <tr><th>代码</th><th>模块</th></tr>
+        <tr><td>1</td><td>认证中间件</td></tr>
+        <tr><td>2</td><td>注册/登录</td></tr>
+        <tr><td>3</td><td>用户管理</td></tr>
+        <tr><td>4</td><td>设备管理</td></tr>
+        <tr><td>5</td><td>隧道管理</td></tr>
+        <tr><td>6</td><td>流量统计</td></tr>
+        <tr><td>7</td><td>配置管理</td></tr>
+        <tr><td>8</td><td>管理员</td></tr>
+        <tr><td>9</td><td>系统/代理</td></tr>
+    </table>
+
+    <h2>错误类型</h2>
+    <table>
+        <tr><th>代码</th><th>类型</th></tr>
+        <tr><td>0</td><td>参数错误</td></tr>
+        <tr><td>1</td><td>认证失败</td></tr>
+        <tr><td>2</td><td>权限不足</td></tr>
+        <tr><td>3</td><td>资源不存在</td></tr>
+        <tr><td>4</td><td>资源冲突</td></tr>
+        <tr><td>5</td><td>频率限制</td></tr>
+        <tr><td>6</td><td>状态异常</td></tr>
+        <tr><td>7</td><td>依赖服务错误</td></tr>
+        <tr><td>8</td><td>业务逻辑错误</td></tr>
+        <tr><td>9</td><td>系统内部错误</td></tr>
+    </table>
+
+    <h2>常见错误码</h2>
+    <table>
+        <tr><th>错误码</th><th>提示文本</th><th>场景</th></tr>
+        <tr><td>1001</td><td>缺少认证令牌</td><td>请求头没有Authorization</td></tr>
+        <tr><td>1003</td><td>认证令牌无效或已过期</td><td>JWT验证失败</td></tr>
+        <tr><td>2002</td><td>密码强度不够</td><td>密码不符合要求</td></tr>
+        <tr><td>2011</td><td>您的账号或密码输入错误</td><td>邮箱或密码错误</td></tr>
+        <tr><td>2051</td><td>登录尝试过多</td><td>连续错误密码</td></tr>
+        <tr><td>5031</td><td>隧道不存在</td><td>隧道ID无效</td></tr>
+        <tr><td>5071</td><td>服务器可用端口已满</td><td>端口池已满</td></tr>
+        <tr><td>5081</td><td>已达隧道创建数量上限</td><td>超过隧道限制</td></tr>
+    </table>
+
+    <h2>响应格式</h2>
+    <h3>成功</h3>
+    <pre><code>{
+  "code": 0,
+  "message": "success",
+  "data": { ... },
+  "timestamp": "2026-07-04T00:00:00Z"
+}</code></pre>
+
+    <h3>错误</h3>
+    <pre><code>{
+  "code": 2011,
+  "message": "您的账号或密码输入错误",
+  "timestamp": "2026-07-04T00:00:00Z"
+}</code></pre>
+</body>
+</html>
