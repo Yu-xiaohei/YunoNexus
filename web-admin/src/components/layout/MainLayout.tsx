@@ -15,30 +15,35 @@ import { useAuthStore } from '../../store/authStore'
 
 const { Header, Sider, Content } = Layout
 
-const menuItems = [
-  { key: '/dashboard', icon: <DashboardOutlined />, label: '仪表盘' },
-  { key: '/tunnels', icon: <ApiOutlined />, label: '隧道管理' },
-  { key: '/devices', icon: <DesktopOutlined />, label: '设备管理' },
-  { key: '/users', icon: <UserOutlined />, label: '用户管理' },
-  { key: '/traffic', icon: <BarChartOutlined />, label: '流量统计' },
-  { key: '/settings', icon: <SettingOutlined />, label: '系统设置' },
-]
-
 function MainLayout() {
   const [collapsed, setCollapsed] = useState(false)
   const [drawerVisible, setDrawerVisible] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
-  const { logout } = useAuthStore()
+  const { logout, user } = useAuthStore()
   const { token: { colorBgContainer, borderRadiusLG } } = theme.useToken()
+
+  const isAdmin = user?.role === 'admin'
+
+  // 根据角色过滤菜单
+  const menuItems = [
+    { key: '/dashboard', icon: <DashboardOutlined />, label: '仪表盘' },
+    { key: '/tunnels', icon: <ApiOutlined />, label: '隧道管理' },
+    { key: '/devices', icon: <DesktopOutlined />, label: '设备管理' },
+    ...(isAdmin ? [
+      { key: '/users', icon: <UserOutlined />, label: '用户管理' },
+    ] : []),
+    { key: '/traffic', icon: <BarChartOutlined />, label: '流量统计' },
+    ...(isAdmin ? [
+      { key: '/settings', icon: <SettingOutlined />, label: '系统设置' },
+    ] : []),
+  ]
 
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768)
-      if (window.innerWidth < 768) {
-        setCollapsed(true)
-      }
+      if (window.innerWidth < 768) setCollapsed(true)
     }
     checkMobile()
     window.addEventListener('resize', checkMobile)
@@ -47,9 +52,7 @@ function MainLayout() {
 
   const handleMenuClick = (key: string) => {
     navigate(key)
-    if (isMobile) {
-      setDrawerVisible(false)
-    }
+    if (isMobile) setDrawerVisible(false)
   }
 
   const userMenuItems = [
@@ -58,9 +61,7 @@ function MainLayout() {
 
   const siderContent = (
     <>
-      <div className="logo">
-        {collapsed ? 'YN' : 'YUNO Nexus'}
-      </div>
+      <div className="logo">{collapsed ? 'YN' : 'YUNO Nexus'}</div>
       <Menu
         theme="dark"
         mode="inline"
@@ -74,24 +75,15 @@ function MainLayout() {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       {isMobile ? (
-        <Drawer
-          placement="left"
-          onClose={() => setDrawerVisible(false)}
-          open={drawerVisible}
-          styles={{ body: { padding: 0 } }}
-        >
+        <Drawer placement="left" onClose={() => setDrawerVisible(false)} open={drawerVisible} styles={{ body: { padding: 0 } }}>
           {siderContent}
         </Drawer>
       ) : (
-        <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed}>
-          {siderContent}
-        </Sider>
+        <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed}>{siderContent}</Sider>
       )}
       <Layout>
         <Header style={{ padding: '0 24px', background: colorBgContainer, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          {isMobile && (
-            <Button type="text" icon={<MenuOutlined />} onClick={() => setDrawerVisible(true)} />
-          )}
+          {isMobile && <Button type="text" icon={<MenuOutlined />} onClick={() => setDrawerVisible(true)} />}
           <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
             <Avatar style={{ backgroundColor: '#1890ff', cursor: 'pointer' }} icon={<UserOutlined />} />
           </Dropdown>

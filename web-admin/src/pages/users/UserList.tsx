@@ -51,7 +51,7 @@ function UserList() {
   const handleViewDetail = (record: Record<string, unknown>) => { setSelectedUser(record); setDetailModalVisible(true) }
   const handleChangePassword = (record: Record<string, unknown>) => { setEditingUser(record); passwordForm.resetFields(); setPasswordModalVisible(true) }
   const handlePasswordOk = async () => { try { await passwordForm.validateFields(); message.success('密码修改成功'); setPasswordModalVisible(false) } catch { message.error('修改失败') } }
-  const handleDelete = async (userId: string) => { try { await adminAPI.updateUser(userId, { status: 'banned' }); message.success('用户已封禁'); fetchUsers() } catch { message.error('操作失败') } }
+  const handleDelete = async (userId: string) => { try { await fetch(`http://localhost:8080/api/v1/users/${userId}`, { method: 'DELETE' }); message.success('用户已删除'); fetchUsers() } catch { message.error('删除失败') } }
   const getStatusTag = (status: string, lastSeen: string) => {
     const isOnline = lastSeen && (Date.now() - new Date(lastSeen).getTime()) < 5 * 60 * 1000
     switch (status) { case 'active': return isOnline ? <Tag color="green">在线</Tag> : <Tag color="default">离线</Tag>; case 'suspended': return <Tag color="orange">暂停</Tag>; case 'banned': return <Tag color="red">封禁</Tag>; default: return <Tag color="default">未知</Tag> }
@@ -69,7 +69,7 @@ function UserList() {
         <Button type="link" icon={<InfoCircleOutlined />} onClick={() => handleViewDetail(r)}>详情</Button>
         <Button type="link" icon={<EditOutlined />} onClick={() => handleEdit(r)}>编辑</Button>
         <Button type="link" icon={<KeyOutlined />} onClick={() => handleChangePassword(r)}>改密</Button>
-        <Popconfirm title="确定封禁此用户?" onConfirm={() => handleDelete(r.id as string)}><Button type="link" danger icon={<DeleteOutlined />}>封禁</Button></Popconfirm>
+        <Popconfirm title="确定删除此用户?" onConfirm={() => handleDelete(r.id as string)}><Button type="link" danger icon={<DeleteOutlined />}>删除</Button></Popconfirm>
       </Space>
     )},
   ]
