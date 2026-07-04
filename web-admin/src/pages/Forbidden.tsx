@@ -1,5 +1,8 @@
-import { Button, Result } from 'antd'
+import { Button, Typography } from 'antd'
 import { useNavigate } from 'react-router-dom'
+import { StopOutlined } from '@ant-design/icons'
+
+const { Title, Text } = Typography
 
 function Forbidden() {
   const navigate = useNavigate()
@@ -9,17 +12,26 @@ function Forbidden() {
   }
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f0f2f5' }}>
-      <Result
-        status="403"
-        title="访问被拒绝"
-        subTitle="您的账户无权访问此系统，请联系管理员。错误码: 403"
-        extra={[
-          <Button type="primary" key="back" onClick={handleBack}>
-            返回
-          </Button>,
-        ]}
-      />
+    <div style={{ 
+      display: 'flex', 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      height: '100vh', 
+      background: '#f0f2f5' 
+    }}>
+      <div style={{ textAlign: 'center', padding: '40px' }}>
+        <StopOutlined style={{ fontSize: 64, color: '#ff4d4f', marginBottom: 24 }} />
+        <Title level={3} style={{ marginBottom: 16 }}>访问被拒绝</Title>
+        <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
+          您的账户无权访问此系统，请联系管理员。
+        </Text>
+        <Text type="secondary" style={{ display: 'block', marginBottom: 24, fontSize: 12 }}>
+          错误码: 403
+        </Text>
+        <Button type="primary" onClick={handleBack}>
+          返回
+        </Button>
+      </div>
     </div>
   )
 }
