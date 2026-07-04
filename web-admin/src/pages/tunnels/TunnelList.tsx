@@ -1,22 +1,26 @@
 import { useEffect, useState } from 'react'
-import { Table, Button, Tag, Space, Modal, Form, Input, Select, message, Popconfirm, Descriptions } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined, PlayCircleOutlined, PauseCircleOutlined, InfoCircleOutlined } from '@ant-design/icons'
+import { Table, Button, Tag, Space, Modal, Form, Input, Select, message, Popconfirm, InputNumber, Descriptions } from 'antd'
+import { PlusOutlined, EditOutlined, DeleteOutlined, PlayCircleOutlined, PauseCircleOutlined, InfoCircleOutlined, FilterOutlined } from '@ant-design/icons'
 import { tunnelAPI } from '../../api'
 
 function TunnelList() {
   const [tunnels, setTunnels] = useState([])
+  const [filteredTunnels, setFilteredTunnels] = useState([])
   const [loading, setLoading] = useState(true)
   const [modalVisible, setModalVisible] = useState(false)
   const [detailModalVisible, setDetailModalVisible] = useState(false)
   const [editingTunnel, setEditingTunnel] = useState<Record<string, unknown> | null>(null)
   const [selectedTunnel, setSelectedTunnel] = useState<Record<string, unknown> | null>(null)
   const [form] = Form.useForm()
+  const [filterProtocol, setFilterProtocol] = useState<string>('all')
+  const [pageSize, setPageSize] = useState(10)
 
   const fetchTunnels = async () => {
     setLoading(true)
     try {
-      const res = await tunnelAPI.list({ page: 1, page_size: 50 })
+      const res = await tunnelAPI.list({ page: 1, page_size: 100 })
       setTunnels(res.data.items || [])
+      setFilteredTunnels(res.data.items || [])
     } catch (error) {
       console.error('获取隧道列表失败:', error)
     } finally {
@@ -27,6 +31,14 @@ function TunnelList() {
   useEffect(() => {
     fetchTunnels()
   }, [])
+
+  useEffect(() => {
+    if (filterProtocol === 'all') {
+      setFilteredTunnels(tunnels)
+    } else {
+      setFilteredTunnels(tunnels.filter((t: Record<string, unknown>) => t.protocol === filterProtocol))
+    }
+  }, [filterProtocol, tunnels])
 
   const handleCreate = () => {
     setEditingTunnel(null)
@@ -136,11 +148,40 @@ function TunnelList() {
 
   return (
     <>
-      <div style={{ marginBottom: 16 }}>
+      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Space>
+          <FilterOutlined />
+          <Select 
+            value={filterProtocol} 
+            onChange={setFilterProtocol}
+            style={{ width: 150 }}
+          >
+            <Select.Option value="all">全部类型</Select.Option>
+            <Select.Option value="tcp">TCP</Select.Option>
+            <Select.Option value="udp">UDP</Select.Option>
+            <Select.Option value="http">HTTP</Select.Option>
+            <Select.Option value="https">HTTPS</Select.Option>
+          </Select>
+          <Select 
+            value={pageSize} 
+            onChange={setPageSize}
+            style={{ width: 100 }}
+          >
+            <Select.Option value={10}>10条/页</Select.Option>
+            <Select.Option value={20}>20条/页</Select.Option>
+            <Select.Option value={50}>50条/页</Select.Option>
+          </Select>
+        </Space>
         <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>创建隧道</Button>
       </div>
       
-      <Table columns={columns} dataSource={tunnels} rowKey="id" loading={loading} />
+      <Table 
+        columns={columns} 
+        dataSource={filteredTunnels} 
+        rowKey="id" 
+        loading={loading}
+        pagination={{ pageSize: pageSize, showSizeChanger: false }}
+      />
 
       <Modal
         title={editingTunnel ? '编辑隧道' : '创建隧道'}
@@ -164,10 +205,10 @@ function TunnelList() {
             <Input defaultValue="127.0.0.1" />
           </Form.Item>
           <Form.Item name="local_port" label="本地端口" rules={[{ required: true }]}>
-            <Input type="number" />
+            <InputNumber style={{ width: '100%' }} />
           </Form.Item>
           <Form.Item name="remote_port" label="远程端口">
-            <Input type="number" placeholder="留空自动分配" />
+            <InputNumber style={{ width: '100%' }} placeholder="留空自动分配" />
           </Form.Item>
           <Form.Item name="domain" label="域名">
             <Input placeholder="HTTP/HTTPS协议需要" />
@@ -184,10 +225,10 @@ function TunnelList() {
         {selectedTunnel && (
           <Descriptions column={1} bordered>
             <Descriptions.Item label="名称">{selectedTunnel.name as string}</Descriptions.Item>
-            <Descriptions.Item label="协议">{selectedTunnel.protocol as string}</Descriptions.Item>
+            <Descriptions.Item label="协议">{(selectedTunnel.protocol as string).toUpperCase()}</Descriptions.Item>
             <Descriptions.Item label="本地地址">{selectedTunnel.local_host as string}:{selectedTunnel.local_port as number}</Descriptions.Item>
             <Descriptions.Item label="远程端口">{selectedTunnel.remote_port as number}</Descriptions.Item>
-            <Descriptions.Item label="状态">{selectedTunnel.status === 'active' ? '在线' : '离线'}</Descriptions.Item>
+            <Descriptions.Item label="状态">{selectedTunnel.status === 'active' ? '已启动' : '离线'}</Descriptions.Item>
             <Descriptions.Item label="活跃连接数">{String((selectedTunnel.stats as Record<string, unknown>)?.active_connections || 0)}</Descriptions.Item>
             <Descriptions.Item label="已发送流量">{String((selectedTunnel.stats as Record<string, unknown>)?.bytes_sent || 0)} bytes</Descriptions.Item>
             <Descriptions.Item label="已接收流量">{String((selectedTunnel.stats as Record<string, unknown>)?.bytes_recv || 0)} bytes</Descriptions.Item>

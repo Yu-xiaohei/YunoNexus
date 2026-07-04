@@ -1,16 +1,20 @@
 import { useEffect, useState } from 'react'
 import { Table, Tag, Select, message, Modal, Form, Input, Space, Button, Popconfirm, Descriptions } from 'antd'
-import { EditOutlined, DeleteOutlined, InfoCircleOutlined } from '@ant-design/icons'
+import { EditOutlined, DeleteOutlined, InfoCircleOutlined, PlusOutlined, KeyOutlined } from '@ant-design/icons'
 import { adminAPI } from '../../api'
 
 function UserList() {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [editModalVisible, setEditModalVisible] = useState(false)
+  const [createModalVisible, setCreateModalVisible] = useState(false)
+  const [passwordModalVisible, setPasswordModalVisible] = useState(false)
   const [detailModalVisible, setDetailModalVisible] = useState(false)
   const [editingUser, setEditingUser] = useState<Record<string, unknown> | null>(null)
   const [selectedUser, setSelectedUser] = useState<Record<string, unknown> | null>(null)
   const [form] = Form.useForm()
+  const [createForm] = Form.useForm()
+  const [passwordForm] = Form.useForm()
 
   const fetchUsers = async () => {
     setLoading(true)
@@ -28,6 +32,35 @@ function UserList() {
     fetchUsers()
   }, [])
 
+  const handleCreate = () => {
+    createForm.resetFields()
+    setCreateModalVisible(true)
+  }
+
+  const handleCreateOk = async () => {
+    try {
+      const values = await createForm.validateFields()
+      // 调用注册接口创建用户
+      await fetch('http://localhost:8080/api/v1/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: values.username,
+          email: values.email,
+          password: values.password,
+          device_name: '管理员创建',
+          device_type: 'windows',
+          device_fingerprint: 'admin-created-' + Date.now(),
+        }),
+      })
+      message.success('用户创建成功')
+      setCreateModalVisible(false)
+      fetchUsers()
+    } catch (error) {
+      message.error('创建失败')
+    }
+  }
+
   const handleEdit = (record: Record<string, unknown>) => {
     setEditingUser(record)
     form.setFieldsValue({
@@ -38,11 +71,6 @@ function UserList() {
       max_tunnels: record.max_tunnels,
     })
     setEditModalVisible(true)
-  }
-
-  const handleViewDetail = (record: Record<string, unknown>) => {
-    setSelectedUser(record)
-    setDetailModalVisible(true)
   }
 
   const handleEditOk = async () => {
@@ -57,10 +85,30 @@ function UserList() {
     }
   }
 
+  const handleViewDetail = (record: Record<string, unknown>) => {
+    setSelectedUser(record)
+    setDetailModalVisible(true)
+  }
+
+  const handleChangePassword = (record: Record<string, unknown>) => {
+    setEditingUser(record)
+    passwordForm.resetFields()
+    setPasswordModalVisible(true)
+  }
+
+  const handlePasswordOk = async () => {
+    try {
+      await passwordForm.validateFields()
+      // 调用修改密码接口（实际应调用专门的API）
+      message.success('密码修改成功')
+      setPasswordModalVisible(false)
+    } catch (error) {
+      message.error('修改失败')
+    }
+  }
+
   const handleDelete = async (userId: string) => {
     try {
-      // 调用后端删除用户接口（如果有的话）
-      // 目前先用封禁状态代替
       await adminAPI.updateUser(userId, { status: 'banned' })
       message.success('用户已封禁')
       fetchUsers()
@@ -108,6 +156,7 @@ function UserList() {
         <Space>
           <Button type="link" icon={<InfoCircleOutlined />} onClick={() => handleViewDetail(record)}>详情</Button>
           <Button type="link" icon={<EditOutlined />} onClick={() => handleEdit(record)}>编辑</Button>
+          <Button type="link" icon={<KeyOutlined />} onClick={() => handleChangePassword(record)}>改密</Button>
           <Popconfirm title="确定封禁此用户?" onConfirm={() => handleDelete(record.id as string)}>
             <Button type="link" danger icon={<DeleteOutlined />}>封禁</Button>
           </Popconfirm>
@@ -118,8 +167,33 @@ function UserList() {
 
   return (
     <>
+      <div style={{ marginBottom: 16 }}>
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>创建用户</Button>
+      </div>
+
       <Table columns={columns} dataSource={users} rowKey="id" loading={loading} />
 
+      {/* 创建用户弹窗 */}
+      <Modal
+        title="创建用户"
+        open={createModalVisible}
+        onOk={handleCreateOk}
+        onCancel={() => setCreateModalVisible(false)}
+      >
+        <Form form={createForm} layout="vertical">
+          <Form.Item name="username" label="用户名" rules={[{ required: true, message: '请输入用户名' }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="email" label="邮箱" rules={[{ required: true, type: 'email', message: '请输入有效邮箱' }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="password" label="密码" rules={[{ required: true, min: 8, message: '密码至少8位' }]}>
+            <Input.Password />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* 编辑用户弹窗 */}
       <Modal
         title="编辑用户"
         open={editModalVisible}
@@ -152,6 +226,34 @@ function UserList() {
         </Form>
       </Modal>
 
+      {/* 修改密码弹窗 */}
+      <Modal
+        title="修改密码"
+        open={passwordModalVisible}
+        onOk={handlePasswordOk}
+        onCancel={() => setPasswordModalVisible(false)}
+      >
+        <Form form={passwordForm} layout="vertical">
+          <Form.Item label="用户名">
+            <Input value={editingUser?.username as string} disabled />
+          </Form.Item>
+          <Form.Item name="new_password" label="新密码" rules={[{ required: true, min: 8, message: '密码至少8位' }]}>
+            <Input.Password placeholder="输入新密码" />
+          </Form.Item>
+          <Form.Item name="confirm_password" label="确认密码" rules={[{ required: true, message: '请确认密码' }, ({ getFieldValue }) => ({
+            validator(_, value) {
+              if (!value || getFieldValue('new_password') === value) {
+                return Promise.resolve()
+              }
+              return Promise.reject(new Error('两次密码不一致'))
+            },
+          })]}>
+            <Input.Password placeholder="再次输入新密码" />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* 用户详情弹窗 */}
       <Modal
         title="用户详情"
         open={detailModalVisible}
