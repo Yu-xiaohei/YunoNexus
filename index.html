@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YUNO Nexus</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 20px; }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-bottom: 20px; }
+        h2 { color: #34495e; margin-top: 30px; }
+        h3 { color: #7f8c8d; }
+        a { color: #3498db; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-family: monospace; }
+        pre { background: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        blockquote { border-left: 4px solid #3498db; margin: 20px 0; padding: 10px 20px; background: #f9f9f9; }
+        ul { margin-left: 20px; }
+        li { margin: 5px 0; }
+        .nav { background: #2c3e50; padding: 15px; border-radius: 5px; margin-bottom: 30px; }
+        .nav a { color: #ecf0f1; margin-right: 20px; }
+        .nav a:hover { color: #3498db; }
+        .footer { margin-top: 50px; padding-top: 20px; border-top: 1px solid #eee; color: #999; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="Home.html">首页</a>
+        <a href="Architecture.html">架构设计</a>
+        <a href="API-Reference.html">API文档</a>
+        <a href="Error-Codes.html">错误码</a>
+        <a href="CHANGELOG.html">更新日志</a>
+    </div>
+
+    <h1>YUNO Nexus</h1>
+    <blockquote>
+        <p>于的小窝 - 专属于你的轻量级内网穿透小工具</p>
+        <p>版本: 0.2.0 | by Yu_xiaohei</p>
+    </blockquote>
+
+    <h2>简介</h2>
+    <p>YUNO Nexus 是一个轻量级、高安全性的内网穿透工具，支持 TCP/UDP/HTTP/HTTPS/WebSocket 协议转发，让内网设备拥有公网访问能力。</p>
+
+    <h2>文档导航</h2>
+    <ul>
+        <li><a href="Architecture.html">架构设计</a> - 系统架构和技术栈</li>
+        <li><a href="API-Reference.html">API文档</a> - 接口说明</li>
+        <li><a href="Error-Codes.html">错误码</a> - 错误码体系</li>
+        <li><a href="CHANGELOG.html">更新日志</a> - 版本历史</li>
+    </ul>
+
+    <h2>功能特性</h2>
+    <ul>
+        <li>支持 TCP/UDP/HTTP/HTTPS/WebSocket 协议转发</li>
+        <li>双层加密：TLS 1.3 + AES-256-GCM</li>
+        <li>设备指纹识别，防止账号盗用</li>
+        <li>IP白名单、到期时间、带宽限制</li>
+        <li>流量伪装：HTTPS + WebSocket，模拟正常网页流量</li>
+        <li>多端支持：Windows、Linux、Android</li>
+        <li>Web管理界面 + 实时仪表盘</li>
+        <li>自动更新、系统通知</li>
+    </ul>
+
+    <h2>快速开始</h2>
+    <pre><code># 克隆项目
+git clone https://github.com/Yu-xiaohei/YunoNexus.git
+cd YunoNexus
+
+# 配置环境变量
+cp .env.example .env
+
+# 启动服务
+docker-compose up -d</code></pre>
+    <p>访问 <a href="https://dev.yxhmc.cn/nexus">https://dev.yxhmc.cn/nexus</a> 使用管理界面。</p>
+
+    <div class="footer">
+        <p>作者: <strong>Yu_xiaohei</strong> | 许可证: MIT License</p>
+    </div>
+</body>
+</html>
