@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="480" viewBox="0 0 1200 480" role="img" aria-labelledby="title desc">
+  <title id="title">YUNO Nexus</title>
+  <desc id="desc">面向自托管的内网穿透项目。Web 管理、Go API 与代理服务的连接路径是本项目的视觉主线；当前处于开发阶段。</desc>
+  <rect width="1200" height="480" fill="#f5f7fa"/>
+  <g font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif">
+    <path d="M64 60H142" stroke="#1677ff" stroke-width="6"/>
+    <text x="164" y="68" font-size="23" font-weight="600" fill="#526071">于的小窝 / SELF-HOSTED NETWORKING</text>
+    <text x="60" y="202" font-size="114" font-weight="750" fill="#14181f">YUNO Nexus</text>
+    <text x="64" y="260" font-size="32" fill="#364152">从一个管理界面，走向公网与内网的连接。</text>
+    <path d="M64 308H1136" stroke="#d3dae4" stroke-width="2"/>
+    <g id="route" font-size="30" font-weight="600">
+      <circle cx="77" cy="366" r="12" fill="#1677ff"/>
+      <text x="108" y="377" fill="#14181f">Web</text>
+      <path d="M202 366H364M353 355L364 366L353 377" fill="none" stroke="#1677ff" stroke-width="3"/>
+      <text x="393" y="377" fill="#14181f">API</text>
+      <path d="M476 366H638M627 355L638 366L627 377" fill="none" stroke="#7e8b9c" stroke-width="3" stroke-dasharray="8 8"/>
+      <text x="667" y="377" fill="#14181f">Proxy</text>
+      <path d="M785 366H946M935 355L946 366L935 377" fill="none" stroke="#7e8b9c" stroke-width="3" stroke-dasharray="8 8"/>
+      <text x="975" y="377" fill="#526071">内网</text>
+    </g>
+    <text x="64" y="436" font-size="21" fill="#526071">管理 · 设备 · 隧道 · 流量</text>
+    <text x="1136" y="436" text-anchor="end" font-size="21" fill="#526071">开发中 / 连接链路待完善</text>
+  </g>
+</svg>

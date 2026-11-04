@@ -52,6 +52,7 @@ src-tauri/target/
 logs/
 
 # 临时文件
+.agent-tmp/
 *.tmp
 *.temp
 *.swp

@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">YUNO Nexus 源码结构</title>
+  <desc id="desc">管理路径：Web 管理界面经 API 访问 PostgreSQL。代理路径：客户端协议入口经 WebSocket 访问 Go Proxy，数据转发及独立客户端仍待完成。实线为已有入口与依赖，虚线为待完成链路。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M2 2L8 5L2 8" fill="none" stroke="#1677ff" stroke-width="1.5"/>
+    </marker>
+    <marker id="pending" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M2 2L8 5L2 8" fill="none" stroke="#7e8b9c" stroke-width="1.5"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="800" fill="#f5f7fa"/>
+  <g font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif">
+    <text x="56" y="76" font-size="42" font-weight="700" fill="#14181f">两个入口，一份资源数据。</text>
+    <text x="56" y="119" font-size="23" fill="#526071">SOURCE MAP / 按当前源码整理</text>
+    <path d="M56 154H1144" stroke="#d3dae4" stroke-width="2"/>
+    <g id="management-path">
+      <text x="56" y="205" font-size="22" fill="#526071">01 / 管理路径</text>
+      <rect x="56" y="232" width="310" height="138" rx="6" fill="#fff" stroke="#d3dae4" stroke-width="2"/>
+      <text x="80" y="285" font-size="32" font-weight="600" fill="#14181f">Web 管理</text>
+      <text x="80" y="330" font-size="22" fill="#526071">React · Ant Design</text>
+      <path d="M366 300H516" fill="none" stroke="#1677ff" stroke-width="3" marker-end="url(#arrow)"/>
+      <text x="440" y="279" text-anchor="middle" font-size="22" fill="#1677ff">/api/v1</text>
+      <rect x="530" y="232" width="310" height="138" rx="6" fill="#fff" stroke="#1677ff" stroke-width="2"/>
+      <text x="554" y="285" font-size="32" font-weight="600" fill="#14181f">Go API</text>
+      <text x="554" y="330" font-size="22" fill="#526071">:8080 · Echo</text>
+    </g>
+    <g id="proxy-path">
+      <text x="56" y="438" font-size="22" fill="#526071">02 / 代理入口</text>
+      <rect x="56" y="465" width="310" height="138" rx="6" fill="#eef1f5" stroke="#7e8b9c" stroke-width="2" stroke-dasharray="7 7"/>
+      <text x="80" y="518" font-size="32" font-weight="600" fill="#526071">客户端协议</text>
+      <text x="80" y="563" font-size="22" fill="#526071">独立客户端尚未包含</text>
+      <path d="M366 533H516" fill="none" stroke="#1677ff" stroke-width="3" marker-end="url(#arrow)"/>
+      <text x="440" y="512" text-anchor="middle" font-size="22" fill="#1677ff">/ws</text>
+      <rect x="530" y="465" width="310" height="138" rx="6" fill="#fff" stroke="#1677ff" stroke-width="2"/>
+      <text x="554" y="518" font-size="32" font-weight="600" fill="#14181f">Go Proxy</text>
+      <text x="554" y="563" font-size="22" fill="#526071">:9443 · WebSocket</text>
+    </g>
+    <g id="shared-storage">
+      <path d="M840 300H899V534H840M899 416H934" fill="none" stroke="#1677ff" stroke-width="3" marker-end="url(#arrow)"/>
+      <rect x="946" y="346" width="198" height="138" rx="6" fill="#14181f"/>
+      <text x="1045" y="404" text-anchor="middle" font-size="27" font-weight="600" fill="#fff">PostgreSQL</text>
+      <text x="1045" y="447" text-anchor="middle" font-size="22" fill="#c7d1df">用户 / 设备 / 隧道</text>
+    </g>
+    <g id="unfinished-data-path">
+      <path d="M685 603V650H366" fill="none" stroke="#7e8b9c" stroke-width="3" stroke-dasharray="8 8" marker-end="url(#pending)"/>
+      <text x="56" y="659" font-size="28" font-weight="600" fill="#526071">内网数据转发</text>
+      <text x="56" y="709" font-size="23" fill="#526071">待接通：数据通道处理 · 转发器联动 · 客户端实现</text>
+    </g>
+    <path d="M56 747H1144" stroke="#d3dae4" stroke-width="2"/>
+    <text x="56" y="781" font-size="20" fill="#526071">结构示意 / 非运行截图</text>
+    <text x="1144" y="781" text-anchor="end" font-size="20" fill="#526071">实线：已有代码依赖　虚线：待完成</text>
+  </g>
+</svg>
